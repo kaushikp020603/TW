@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Badge, Btn, Card, Empty, Icon, Label, Modal, Segmented, Switch, ago, fdate, field, inr, useUi } from "./ui";
 import { useAdmin } from "./ctx";
+import { GiftCardButton } from "./pages5";
 import { MAJOR_ARCANA } from "@/data/tarot";
 import { CardFace } from "@/components/TarotCard";
 
@@ -80,7 +81,7 @@ export function CouponsPage() {
   const { d, act } = useAdmin(); const { confirm } = useUi(); const [c, setC] = useState<any | null>(null);
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between"><h1 className="font-display text-3xl">Coupons</h1><Btn v="primary" icon="plus" onClick={() => setC({ code: "", kind: "percent", value: "", max_uses: "" })}>New coupon</Btn></div>
+      <div className="flex items-center justify-between"><h1 className="font-display text-3xl">Coupons</h1><div className="flex gap-2"><GiftCardButton /><Btn v="primary" icon="plus" onClick={() => setC({ code: "", kind: "percent", value: "", max_uses: "" })}>New coupon</Btn></div></div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {d.coupons.map((x: any, i: number) => (
           <motion.div key={x.code} layout initial={{ opacity: 0, rotate: -1.5, y: 20 }} animate={{ opacity: 1, rotate: 0, y: 0 }} transition={{ delay: i * 0.05 }} whileHover={{ y: -4, rotate: 0.6 }} className={`relative overflow-hidden rounded-2xl border border-dashed border-amber-300/30 bg-gradient-to-br from-[#2a1d12] to-[#120c20] p-5 ${x.active ? "" : "opacity-50"}`}>

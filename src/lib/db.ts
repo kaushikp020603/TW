@@ -34,6 +34,16 @@ const SCHEMA = `
   CREATE TABLE IF NOT EXISTS activity (id INTEGER PRIMARY KEY, text TEXT NOT NULL, created INTEGER NOT NULL);
   CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);
   CREATE TABLE IF NOT EXISTS media (id INTEGER PRIMARY KEY, name TEXT NOT NULL, mime TEXT NOT NULL, size INTEGER NOT NULL, data BLOB NOT NULL, created INTEGER NOT NULL);
+  CREATE TABLE IF NOT EXISTS tokens (hash TEXT PRIMARY KEY, user_id INTEGER NOT NULL, purpose TEXT NOT NULL, expires INTEGER NOT NULL, used INTEGER DEFAULT 0);
+  CREATE TABLE IF NOT EXISTS reset_requests (id INTEGER PRIMARY KEY, user_id INTEGER, email TEXT, created INTEGER NOT NULL, handled INTEGER DEFAULT 0);
+  CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY, ts INTEGER NOT NULL, type TEXT NOT NULL, path TEXT, ref TEXT, vid TEXT);
+  CREATE INDEX IF NOT EXISTS idx_events_ts ON events (ts, type);
+  CREATE TABLE IF NOT EXISTS errors (id INTEGER PRIMARY KEY, ts INTEGER NOT NULL, source TEXT, message TEXT, path TEXT, ua TEXT);
+  CREATE TABLE IF NOT EXISTS backups (id INTEGER PRIMARY KEY, created INTEGER NOT NULL, kind TEXT, size INTEGER, data TEXT NOT NULL);
+  CREATE TABLE IF NOT EXISTS trash (id INTEGER PRIMARY KEY, tbl TEXT NOT NULL, label TEXT, payload TEXT NOT NULL, deleted INTEGER NOT NULL);
+  CREATE TABLE IF NOT EXISTS leads (id INTEGER PRIMARY KEY, kind TEXT NOT NULL, contact TEXT NOT NULL UNIQUE, created INTEGER NOT NULL);
+  CREATE TABLE IF NOT EXISTS waitlist (id INTEGER PRIMARY KEY, date TEXT NOT NULL, name TEXT NOT NULL, contact TEXT NOT NULL, service_id TEXT, note TEXT, created INTEGER NOT NULL);
+  CREATE INDEX IF NOT EXISTS idx_waitlist_date ON waitlist (date);
   CREATE TABLE IF NOT EXISTS ratelimit (id INTEGER PRIMARY KEY, k TEXT NOT NULL, ts INTEGER NOT NULL);
   CREATE INDEX IF NOT EXISTS idx_ratelimit ON ratelimit (k, ts);
   CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings (date, time);
@@ -41,7 +51,9 @@ const SCHEMA = `
   CREATE TABLE IF NOT EXISTS readers (id INTEGER PRIMARY KEY, name TEXT NOT NULL, bio TEXT, specialties TEXT, whatsapp TEXT NOT NULL, email TEXT, verified INTEGER DEFAULT 0, main INTEGER DEFAULT 0, created INTEGER NOT NULL);
 `;
 const MIGRATIONS = [
-  "ALTER TABLE users ADD COLUMN premium INTEGER DEFAULT 0", "ALTER TABLE users ADD COLUMN credits INTEGER DEFAULT 0",
+  "ALTER TABLE bookings ADD COLUMN summary TEXT", "ALTER TABLE bookings ADD COLUMN summary_cards TEXT", "ALTER TABLE bookings ADD COLUMN referrer_id INTEGER", "ALTER TABLE bookings ADD COLUMN ref_rewarded INTEGER DEFAULT 0", "ALTER TABLE users ADD COLUMN ref_code TEXT",
+  "CREATE UNIQUE INDEX IF NOT EXISTS uniq_ref_code ON users (ref_code)",
+  "ALTER TABLE users ADD COLUMN email_verified INTEGER DEFAULT 0", "ALTER TABLE users ADD COLUMN premium INTEGER DEFAULT 0", "ALTER TABLE users ADD COLUMN credits INTEGER DEFAULT 0",
   "ALTER TABLE services ADD COLUMN kind TEXT DEFAULT 'reading'", "ALTER TABLE services ADD COLUMN sessions INTEGER DEFAULT 0",
   "ALTER TABLE slots ADD COLUMN priority INTEGER DEFAULT 0",
   "CREATE UNIQUE INDEX IF NOT EXISTS uniq_active_slot ON bookings (date, time) WHERE status IN ('pending','confirmed')",
@@ -57,7 +69,7 @@ function connect(): Client {
 }
 
 // Bump SCHEMA_VERSION whenever the schema or seed data changes. Cold starts then cost a single query once migrated.
-const SCHEMA_VERSION = "v4:" + SITE.whatsappNumber;
+const SCHEMA_VERSION = "v6:" + SITE.whatsappNumber;
 
 async function init(c: Client) {
   try { const v = await c.execute("SELECT value FROM settings WHERE key='schema_version'"); if (v.rows[0]?.value === SCHEMA_VERSION) return; } catch { /* first run: tables don't exist yet */ }

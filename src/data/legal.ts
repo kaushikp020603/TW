@@ -1,8 +1,6 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
 import { SITE } from "@/config/site";
 
-const DOCS: Record<string, { title: string; body: string[] }> = {
+export const DOCS: Record<string, { title: string; body: string[] }> = {
   privacy: { title: "Privacy Policy", body: [
     "THE ARCANA collects only what you choose to send. Booking details (name, service, date, time, notes) are placed into a WhatsApp message that you send yourself; they are not stored on our servers.",
     "Your recent booking requests and any question you type into the reading tool are kept only in your own browser (local storage) and can be cleared by clearing your site data.",
@@ -18,18 +16,3 @@ const DOCS: Record<string, { title: string; body: string[] }> = {
     "Nothing on this website is medical, legal, financial or psychological advice. Please consult a qualified professional for such matters.",
     "You remain responsible for your own decisions."] },
 };
-
-export function generateStaticParams() { return Object.keys(DOCS).map((doc) => ({ doc })); }
-
-export default async function Doc({ params }: { params: Promise<{ doc: string }> }) {
-  const { doc } = await params;
-  const d = DOCS[doc];
-  if (!d) notFound();
-  return (
-    <main className="mx-auto max-w-2xl px-6 py-24">
-      <Link href="/" className="eyebrow inline-block py-3">← THE ARCANA</Link>
-      <h1 className="h-hero mt-6 text-5xl">{d.title}</h1>
-      <div className="mt-8 space-y-5 font-light leading-relaxed text-ivory/85">{d.body.map((p, i) => <p key={i}>{p}</p>)}</div>
-    </main>
-  );
-}

@@ -9,6 +9,9 @@ import { startBooking } from "@/lib/events";
 import { openAuth, useUser } from "@/lib/useUser";
 import { MOODS } from "@/lib/mystic";
 import Link from "next/link";
+import { sfxFlip, sfxPick, sfxShuffle } from "@/lib/sfx";
+import { track } from "@/lib/track";
+import { makeShareImage, shareOrDownload } from "@/lib/shareImage";
 
 type Step = "setup" | "shuffle" | "pick" | "reveal";
 type Saved = { id: string; at: number; spread: SpreadKey; category: Category; question: string; cards: { id: number; reversed: boolean }[] };
@@ -69,6 +72,7 @@ function DailyCard() {
           <>
             <p className="mt-3 text-sm font-light leading-relaxed text-ivory/85">{d.reversed ? card.reversed : card.upright}</p>
             <p className="mt-2 text-xs text-ivory/50">Come back tomorrow for a new card.</p>
+            <button className="mr-5 mt-3 inline-block text-xs uppercase tracking-[.2em] text-lavender hover:text-gold" onClick={async () => { const blob = await makeShareImage("My card of the day", [{ card, reversed: d.reversed }]); track("share"); await shareOrDownload(blob, "my-card-of-the-day.png", `My card of the day on THE ARCANA: ${card.name}`); }}>Share as image</button>
             <Link className="mr-5 mt-3 inline-block text-xs uppercase tracking-[.2em] text-lavender hover:text-gold" href="/journey">Daily reminder</Link><a className="mt-3 inline-block text-xs uppercase tracking-[.2em] text-lavender hover:text-gold" target="_blank" rel="noopener noreferrer"
               href={`https://wa.me/?text=${encodeURIComponent(`My card of the day on THE ARCANA: ${card.name}${d.reversed ? " (reversed)" : ""} — ${card.keywords}`)}`}>Share on WhatsApp</a>
           </>
@@ -117,15 +121,16 @@ export default function Reading() {
     addEventListener("arcana:read", h); return () => removeEventListener("arcana:read", h);
   }, [reset]);
 
-  function begin() { setDeck(shuffleDeck()); setPicked([]); setFlipped([]); setSaved(""); setStep("shuffle"); setTimeout(() => setStep("pick"), 2600); }
+  function begin() { sfxShuffle(); track("reading_start"); setDeck(shuffleDeck()); setPicked([]); setFlipped([]); setSaved(""); setStep("shuffle"); setTimeout(() => setStep("pick"), 2600); }
   function pick(i: number) {
     if (picked.includes(i) || picked.length >= count) return;
+    sfxPick();
     const next = [...picked, i]; setPicked(next);
     if (next.length === count) {
       const gap = count > 3 ? 380 : 900;
       setTimeout(() => {
         setStep("reveal"); setFlipped(next.map(() => false));
-        next.forEach((_, k) => setTimeout(() => setFlipped((f) => f.map((v, j) => (j === k ? true : v))), 700 + k * gap));
+        next.forEach((_, k) => setTimeout(() => { setFlipped((f) => f.map((v, j) => (j === k ? true : v))); sfxFlip(); }, 700 + k * gap));
       }, 900);
     }
   }
@@ -134,6 +139,13 @@ export default function Reading() {
   const allFlipped = flipped.length > 0 && flipped.every(Boolean);
   const notes = useMemo(() => (allFlipped ? interpret(spreadKey, category, question, drawn) : []), [allFlipped, spreadKey, category, question, drawn]);
   const pos = SPREADS[spreadKey].positions;
+  useEffect(() => { if (allFlipped) track("reading_complete"); }, [allFlipped]);
+  async function shareImage() {
+    const pick = count <= 3 ? drawn.map((d, i) => ({ card: d.card, reversed: d.reversed, label: count > 1 ? pos[i] : undefined })) : [{ card: drawn[drawn.length - 1].card, reversed: drawn[drawn.length - 1].reversed, label: "The outcome" }];
+    const note = spreadKey === "yesno" ? `Symbolic answer: ${yesNo(drawn[0])}` : question || undefined;
+    const blob = await makeShareImage(`${SPREADS[spreadKey].label} reading`, pick, note);
+    track("share"); await shareOrDownload(blob, "my-arcana-reading.png", "My reading on THE ARCANA");
+  }
 
   async function save() {
     const rec: Saved = { id: String(Date.now()), at: Date.now(), spread: spreadKey, category, question, cards: drawn.map((d) => ({ id: d.card.id, reversed: d.reversed })) };
@@ -252,6 +264,7 @@ export default function Reading() {
                     <div className="mt-4 flex flex-wrap items-center justify-center gap-5 text-xs uppercase tracking-[.18em]">
                       <a className="text-lavender hover:text-gold" target="_blank" rel="noopener noreferrer" href={`https://wa.me/?text=${encodeURIComponent(readingText(spreadKey, category, question, drawn))}`}>Share on WhatsApp</a>
                       <button className="text-lavender hover:text-gold" onClick={() => printReading(spreadKey, category, question, drawn, notes)}>Download PDF</button>
+                      <button className="text-lavender hover:text-gold" onClick={shareImage}>Share as image</button>
                       <button className="text-lavender hover:text-gold" onClick={reset}>Draw again</button>
                     </div>
                     <div className="mx-auto mt-6 max-w-md text-center text-xs font-light text-ivory/70">

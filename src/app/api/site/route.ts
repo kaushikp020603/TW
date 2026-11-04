@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { currentUser, limited } from "@/lib/auth";
 import { row, rows, run, now } from "@/lib/db";
 import { getConfig } from "@/lib/config";
+import { getBusiness } from "@/lib/business";
+import { refCodeFor, REFERRAL_PERCENT } from "@/lib/referral";
 
 const ip = (r: Request) => r.headers.get("x-forwarded-for")?.split(",")[0] ?? "local";
 const J = (o: unknown, status = 200) => NextResponse.json(o, { status });
@@ -14,6 +16,7 @@ export async function GET(req: Request) {
   switch (q) {
     case "cards": return J({ cards: await rows("SELECT * FROM card_overrides") });
     case "config": return J(await getConfig());
+    case "business": return J(await getBusiness());
     case "announce": return J({ items: await rows("SELECT id,text FROM announcements WHERE active=1 ORDER BY created DESC LIMIT 3") });
     case "blog": return J({ posts: await rows("SELECT slug,title,substr(body,1,180) AS excerpt,created FROM posts WHERE published=1 ORDER BY created DESC") });
     case "post": { const p = await row("SELECT slug,title,body,created FROM posts WHERE slug=? AND published=1", u.searchParams.get("slug") || ""); return p ? J({ post: p }) : J({ error: "Not found" }, 404); }
@@ -26,7 +29,7 @@ export async function GET(req: Request) {
     case "account": {
       if (!user) return J({ premium: false, credits: 0 });
       const me = await row<{ premium: number; credits: number }>("SELECT premium,credits FROM users WHERE id=?", user.id);
-      return J({ premium: !!me?.premium, credits: me?.credits ?? 0 });
+      return J({ premium: !!me?.premium, credits: me?.credits ?? 0, refCode: await refCodeFor(user.id), refPercent: REFERRAL_PERCENT });
     }
     case "journal": if (!user) return J({ entries: [] }); return J({ entries: await rows("SELECT id,text,mood,created FROM journal WHERE user_id=? ORDER BY created DESC LIMIT 100", user.id) });
     case "chat": if (!user) return J({ messages: [] }); return J({ messages: await rows("SELECT id,sender,text,created FROM messages WHERE user_id=? ORDER BY created LIMIT 200", user.id) });
@@ -70,6 +73,21 @@ export async function POST(req: Request) {
       if (!user) return need();
       const text = clip(b.text, 800); if (!text) return J({ error: "Empty message." }, 400);
       await run("INSERT INTO messages (user_id,sender,text,created) VALUES (?,?,?,?)", user.id, "user", text, now()); return J({ ok: true });
+    }
+    case "subscribe": { // weekly-card signup: email or WhatsApp number, with explicit consent
+      if (!b.consent) return J({ error: "Please tick the box to agree to receive the weekly card." }, 400);
+      const c = clip(b.contact, 120); const isMail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c); const digits = c.replace(/\D/g, "");
+      if (!isMail && digits.length < 10) return J({ error: "Enter a valid email or WhatsApp number." }, 400);
+      await run("INSERT OR IGNORE INTO leads (kind,contact,created) VALUES (?,?,?)", isMail ? "email" : "whatsapp", isMail ? c.toLowerCase() : (digits.length === 10 ? "91" + digits : digits), now());
+      return J({ ok: true, message: "You're in! Your weekly card will arrive soon." });
+    }
+    case "waitlist": { // a fully booked day: leave a name and contact so the reader can message when a slot opens
+      const date = clip(b.date, 10), name = clip(b.name, 80), contact = clip(b.contact, 120);
+      const isMail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact), digits = contact.replace(/\D/g, "");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date < new Date().toISOString().slice(0, 10) || name.length < 2 || (!isMail && digits.length < 10)) return J({ error: "Add your name, a WhatsApp number or email, and a valid date." }, 400);
+      const c = isMail ? contact.toLowerCase() : digits.length === 10 ? "91" + digits : digits;
+      if (!(await row("SELECT 1 x FROM waitlist WHERE date=? AND contact=?", date, c))) await run("INSERT INTO waitlist (date,name,contact,service_id,note,created) VALUES (?,?,?,?,?,?)", date, name, c, clip(b.serviceId, 30), clip(b.note, 200), now());
+      return J({ ok: true, message: "You're on the waitlist. The reader will message you if a slot opens." });
     }
     case "buy_package": {
       if (!user) return need();

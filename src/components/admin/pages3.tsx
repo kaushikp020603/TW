@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @next/next/no-html-link-for-pages */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Avatar, Badge, Btn, Card, DataTable, Empty, Icon, Label, Segmented, Stat, ago, fdate, field, inr, useUi, type Col } from "./ui";
 import { AreaChart, BarChart, Donut, HBars } from "./charts";
 import { useAdmin } from "./ctx";
+import { BackupsCard, BusinessCard, TrashCard } from "./pages5";
 import { MAJOR_ARCANA } from "@/data/tarot";
 
 // ───────── Chat ─────────
@@ -124,6 +125,7 @@ export function SettingsPage() {
             <label className="block"><Label>Current password</Label><input type="password" className={field} required autoComplete="current-password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></label>
             <label className="block"><Label>New password (8+ characters)</Label><input type="password" className={field} required minLength={8} autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /></label>
             <label className="block"><Label>Repeat new password</Label><input type="password" className={field} required autoComplete="new-password" value={pw.again} onChange={(e) => setPw({ ...pw, again: e.target.value })} /></label><Btn v="primary" icon="shield">Update password</Btn></form></Card>
+        <BusinessCard /><BackupsCard /><TrashCard />
         <Card title="Backup & export"><p className="mb-4 text-sm text-ivory/55">Download everything as a JSON backup (client passwords are never included), or export individual lists to Excel-friendly CSV.</p>
           <div className="flex flex-wrap gap-2"><a href="/api/admin?backup=1"><Btn v="primary" icon="download">Full backup (JSON)</Btn></a>{["bookings", "payments", "customers", "readings"].map((x) => <a key={x} href={`/api/admin?export=${x}`}><Btn icon="download" className="capitalize">{x}</Btn></a>)}</div></Card>
         <Card title="Keyboard shortcuts"><ul className="space-y-2 text-sm">{SC.map(([k, v]) => <li key={k} className="flex items-center justify-between"><span className="text-ivory/70">{v}</span><kbd className="rounded-lg border border-white/15 bg-white/[.06] px-2.5 py-1 text-xs">{k}</kbd></li>)}</ul></Card>

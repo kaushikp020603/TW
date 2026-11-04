@@ -12,6 +12,7 @@ const listeners = new Set<(on: boolean) => void>();
 const notify = () => listeners.forEach((l) => l(on));
 
 export const isAmbientOn = () => on;
+export function getAudioContext(): AudioContext { return audioCtx(); }
 export const getAmbientMode = () => cfg.mode;
 export function onAmbient(fn: (v: boolean) => void) { listeners.add(fn); return () => { listeners.delete(fn); }; }
 

@@ -42,7 +42,7 @@ export default function Oracle() {
   return (
     <>
       <button onClick={() => setOpen(!open)} aria-label="Open the Tarot Oracle" aria-expanded={open}
-        className="fixed bottom-5 right-5 z-[65] h-16 w-16 overflow-hidden rounded-full border border-gold shadow-[0_0_30px_rgba(214,179,109,.5)] transition hover:scale-105">
+        className="float-btn fixed bottom-5 right-5 z-[65] h-16 w-16 overflow-hidden rounded-full border border-gold shadow-[0_0_30px_rgba(214,179,109,.5)] transition hover:scale-105">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={IMG.moonReader} alt="" className="h-full w-full object-cover object-[50%_18%] scale-[2.3]" />
         <span className="absolute inset-0 rounded-full" style={{ animation: "pulseGlow 3s infinite", boxShadow: "inset 0 0 18px rgba(214,179,109,.6)" }} />

@@ -1,4 +1,6 @@
 // ───────── Single place to edit business details ─────────
+/** Public address of the site (set NEXT_PUBLIC_SITE_URL in production, e.g. https://thearcana.in). */
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
 export const SITE = {
   name: "THE ARCANA",
   tagline: "Some answers aren't found. They're revealed.",
@@ -38,9 +40,9 @@ export const IMG = {
   girlHeart: "/img/10.webp",
   spiral: "/img/11.webp",
   priestess: "/img/12.webp",
-  palace: "/img/13.png",
+  palace: "/img/13.webp",
   cardHand: "/img/14.webp",
-  heartStairs: "/img/15.png",
+  heartStairs: "/img/15.webp",
   watercolor: "/img/16.webp",
   lavender: "/img/17.webp",
   goldWall: "/img/18.webp",

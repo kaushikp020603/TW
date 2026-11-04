@@ -21,4 +21,4 @@ export function useUser(): { user: U; ready: boolean } {
   }, []);
   return { user: u, ready };
 }
-export function openAuth(mode: "login" | "register" = "login") { window.dispatchEvent(new CustomEvent("arcana:auth", { detail: { mode } })); }
+export function openAuth(mode: "login" | "register" | "forgot" = "login") { window.dispatchEvent(new CustomEvent("arcana:auth", { detail: { mode } })); }

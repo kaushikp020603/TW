@@ -116,3 +116,8 @@ p, h1, h2, h3, li, label { overflow-wrap: anywhere; }
   /* phones in landscape: don't force full-height hero/chapters */
   #top { min-height: 140svh; }
 }
+
+/* ───────── Accessibility and layout helpers ───────── */
+html[data-text="large"] { font-size: 118%; }
+.float-btn { transition: transform .3s ease, bottom .3s ease; }
+body.has-sticky-bar .float-btn { transform: translateY(-4.6rem); }

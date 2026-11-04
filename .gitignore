@@ -44,3 +44,6 @@ next-env.d.ts
 
 # keep the template of required variables
 !.env.example
+
+# test output
+/tests/out

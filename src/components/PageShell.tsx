@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AccountButton, AuthModal } from "./Account";
 
 export const MORE = [
-  ["/insights", "Your Stars"], ["/journey", "My Journey"], ["/community", "Community"], ["/blog", "Blog"], ["/readers", "Readers"], ["/chat", "Ask the Reader"],
+  ["/about", "About"], ["/cards", "Card Meanings"], ["/insights", "Your Stars"], ["/journey", "My Journey"], ["/community", "Community"], ["/blog", "Blog"], ["/readers", "Readers"], ["/chat", "Ask the Reader"],
 ] as const;
 
 export default function PageShell({ title, eyebrow, intro, children }: { title: React.ReactNode; eyebrow: string; intro?: string; children: React.ReactNode }) {

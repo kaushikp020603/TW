@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { CardBack } from "./TarotCard";
 import SoundToggle from "./SoundToggle";
+import { track } from "@/lib/track";
 
 type P = { x: number; y: number; tx: number; ty: number; sx: number; sy: number; r: number; d: number };
 
@@ -120,7 +121,7 @@ export default function Intro({ onDone, speed = 1 }: { onDone: () => void; speed
       </p>
       <div className="absolute right-4 top-4 flex items-center gap-3 sm:right-8 sm:top-6">
         <SoundToggle />
-        <button onClick={finish} className={`btn !py-2.5 transition-opacity ${skipVisible ? "opacity-100" : "opacity-0"}`}>Skip intro</button>
+        <button onClick={() => { track("intro_skip"); finish(); }} className={`btn !py-2.5 transition-opacity ${skipVisible ? "opacity-100" : "opacity-0"}`}>Skip intro</button>
       </div>
     </div>
   );

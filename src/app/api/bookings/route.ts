@@ -3,17 +3,27 @@ import crypto from "node:crypto";
 import { currentUser, limited } from "@/lib/auth";
 import { row, rows, run, now } from "@/lib/db";
 import { sendMail } from "@/lib/mail";
+import { REFERRAL_PERCENT } from "@/lib/referral";
 
 const ip = (r: Request) => r.headers.get("x-forwarded-for")?.split(",")[0] ?? "local";
 
 type Coupon = { code: string; kind: string; value: number; active: number; uses: number; max_uses: number | null };
 
-async function priceWithCoupon(price: number, code?: string) {
-  if (!code) return { discount: 0, coupon: null as string | null };
-  const c = await row<Coupon>("SELECT * FROM coupons WHERE code=? AND active=1", code.trim().toUpperCase());
-  if (!c || (c.max_uses && c.uses >= c.max_uses)) return { discount: 0, coupon: null };
+async function priceWithCoupon(price: number, code?: string, userId?: number | null) {
+  const none = { discount: 0, coupon: null as string | null, referrerId: null as number | null };
+  if (!code) return none;
+  const up = code.trim().toUpperCase();
+  if (/^ARC-[A-Z0-9]{5}$/.test(up)) { // friend referral code: only for a signed-in client's first booking
+    if (!userId) return none;
+    const ref = await row<{ id: number }>("SELECT id FROM users WHERE ref_code=?", up);
+    if (!ref || ref.id === userId) return none;
+    if (await row("SELECT 1 x FROM bookings WHERE user_id=? AND status NOT IN ('cancelled','rejected')", userId)) return none;
+    return { discount: Math.round((price * REFERRAL_PERCENT) / 100), coupon: up, referrerId: ref.id };
+  }
+  const c = await row<Coupon>("SELECT * FROM coupons WHERE code=? AND active=1", up);
+  if (!c || (c.max_uses && c.uses >= c.max_uses)) return none;
   const d = c.kind === "percent" ? Math.round((price * c.value) / 100) : Math.min(price, c.value);
-  return { discount: d, coupon: c.code };
+  return { discount: d, coupon: c.code, referrerId: null };
 }
 async function slotFree(date: string, time: string, ignoreId = 0) {
   if (await row("SELECT 1 x FROM blocked WHERE date=? AND (time IS NULL OR time=?)", date, time)) return false;
@@ -28,14 +38,22 @@ export async function GET(req: Request) {
   if (cp) {
     const s = await row<{ price: number }>("SELECT price FROM services WHERE id=?", u.searchParams.get("service") || "");
     if (!s) return NextResponse.json({ valid: false });
-    const r = await priceWithCoupon(s.price, cp);
+    const r = await priceWithCoupon(s.price, cp, (await currentUser())?.id);
     return NextResponse.json({ valid: !!r.coupon, discount: r.discount, final: s.price - r.discount });
   }
+  const sm = u.searchParams.get("summary"); // a client's private reading summary, opened by its secret booking code
+  if (sm) {
+    if (await limited("sum:" + ip(req), 40)) return NextResponse.json({ error: "Too many requests." }, { status: 429 });
+    const b = await row<{ name: string; service_name: string; date: string; summary: string; summary_cards: string | null }>("SELECT name,service_name,date,summary,summary_cards FROM bookings WHERE code=? AND summary IS NOT NULL AND summary<>''", sm.toUpperCase());
+    if (!b) return NextResponse.json({ error: "No summary found." }, { status: 404 });
+    let cards: unknown = []; try { cards = JSON.parse(b.summary_cards || "[]"); } catch { cards = []; }
+    return NextResponse.json({ summary: { name: b.name, service_name: b.service_name, date: b.date, text: b.summary, cards } });
+  }
   const code = u.searchParams.get("code");
-  if (code) return NextResponse.json({ bookings: await rows("SELECT code,service_name,price,discount,date,time,status,name,kind,meeting_link FROM bookings WHERE code=?", code.toUpperCase()) });
+  if (code) return NextResponse.json({ bookings: await rows("SELECT code,service_name,price,discount,date,time,status,name,kind,meeting_link,(summary IS NOT NULL AND summary<>'') AS has_summary FROM bookings WHERE code=?", code.toUpperCase()) });
   const user = await currentUser();
   if (!user) return NextResponse.json({ bookings: [] });
-  return NextResponse.json({ bookings: await rows("SELECT code,service_name,price,discount,date,time,status,kind,meeting_link FROM bookings WHERE user_id=? ORDER BY date DESC, time", user.id) });
+  return NextResponse.json({ bookings: await rows("SELECT code,service_name,price,discount,date,time,status,kind,meeting_link,(summary IS NOT NULL AND summary<>'') AS has_summary FROM bookings WHERE user_id=? ORDER BY date DESC, time", user.id) });
 }
 
 export async function POST(req: Request) {
@@ -51,17 +69,17 @@ export async function POST(req: Request) {
   if (!(await slotFree(date, time))) return NextResponse.json({ error: "Sorry, that slot was just taken. Please choose another." }, { status: 409 });
   const slotRow = await row<{ priority: number }>("SELECT priority FROM slots WHERE time=?", time);
   if (slotRow?.priority && !(user && (await row("SELECT 1 x FROM users WHERE id=? AND premium=1", user.id)))) return NextResponse.json({ error: "That is a priority slot for premium members." }, { status: 403 });
-  let { discount, coupon } = await priceWithCoupon(svc.price, b.coupon);
+  let { discount, coupon, referrerId } = await priceWithCoupon(svc.price, b.coupon, user?.id);
   let usedCredit = 0;
   if (b.useCredit) {
     const cr = user ? (await row<{ credits: number }>("SELECT credits FROM users WHERE id=?", user.id))?.credits ?? 0 : 0;
     if (!user || cr < 1) return NextResponse.json({ error: "You have no package credits left." }, { status: 400 });
-    usedCredit = 1; discount = svc.price; coupon = null;
+    usedCredit = 1; discount = svc.price; coupon = null; referrerId = null;
   }
   const code = crypto.randomBytes(4).toString("hex").toUpperCase();
   try {
-    await run("INSERT INTO bookings (code,user_id,name,phone,service_id,service_name,price,discount,coupon,date,time,note,created,kind,used_credit) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-      code, user?.id ?? null, name, phone || null, svc.id, svc.name, svc.price, discount, coupon, date, time, String(b.note || "").slice(0, 300), now(), svc.kind, usedCredit);
+    await run("INSERT INTO bookings (code,user_id,name,phone,service_id,service_name,price,discount,coupon,date,time,note,created,kind,used_credit,referrer_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+      code, user?.id ?? null, name, phone || null, svc.id, svc.name, svc.price, discount, coupon, date, time, String(b.note || "").slice(0, 300), now(), svc.kind, usedCredit, referrerId);
   } catch (e) {
     if (isUniqueViolation(e)) return NextResponse.json({ error: "Sorry, that slot was just taken. Please choose another." }, { status: 409 });
     throw e;

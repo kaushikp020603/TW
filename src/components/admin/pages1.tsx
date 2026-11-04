@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @next/next/no-html-link-for-pages */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Avatar, Badge, Btn, Card, DataTable, Empty, Icon, Label, Modal, Segmented, SlideOver, Stat, STATUS_TONE, Switch, ago, fdate, field, fshort, inr, panel, useUi, waNumber, type Col } from "./ui";
 import { AreaChart, Donut } from "./charts";
 import { useAdmin } from "./ctx";
+import { ImportClientsButton, RemindersButton, ResetLinkModal, ResetRequests, SummaryEditor, WaitlistCard, printDaySheet } from "./pages5";
 
 const STATUSES = ["pending", "confirmed", "completed", "cancelled", "rejected"];
 
@@ -19,6 +20,7 @@ export function Dashboard() {
     { n: a.bookings, label: "bookings awaiting confirmation", to: "bookings", icon: "bookings" }, { n: a.payments, label: "pending payments", to: "payments", icon: "payments" },
     { n: a.chat, label: "chats waiting for a reply", to: "chat", icon: "chat" }, { n: a.reviews, label: "reviews to approve", to: "reviews", icon: "star" },
     { n: a.community, label: "community posts to review", to: "community", icon: "community" }, { n: a.readers, label: "reader applications", to: "readers", icon: "readers" },
+    { n: a.resets, label: "password reset requests", to: "clients", icon: "shield" }, { n: a.waitlist, label: "people on the waitlist", to: "calendar", icon: "calendar" }, { n: a.errors, label: "site errors in the last 24h", to: "analytics", icon: "alert" },
   ].filter((x) => x.n > 0);
   const status = STATUSES.map((s, i) => ({ label: s, value: d.bookings.filter((b: any) => b.status === s).length, color: ["#f59e0b", "#10b981", "#8b5cf6", "#64748b", "#ef4444"][i] }));
   return (
@@ -93,11 +95,12 @@ export function CalendarPage() {
                 {blocked.has(k) && <span className="absolute right-1 top-1 text-[.55rem] text-red-300">off</span>}</motion.button>); })}
           </div>
         </Card>
-        <Card title={fshort(sel)} className="h-fit">
+        <Card title={fshort(sel)} className="h-fit" action={<Btn size="sm" icon="readings" onClick={() => printDaySheet(`Day sheet · ${fshort(sel)}`, list)}>Print day sheet</Btn>}>
           <AnimatePresence mode="wait"><motion.div key={sel} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}>
             {list.length ? <ul className="space-y-2">{list.map((b: any) => <Row key={b.id} b={b} open={() => openBooking(b.id)} />)}</ul> : <Empty icon="calendar" title="No sessions" hint={blocked.has(sel) ? "This day is blocked." : "Nothing booked for this day."} />}</motion.div></AnimatePresence>
         </Card>
       </div>
+      <WaitlistCard />
     </div>
   );
 }
@@ -121,7 +124,7 @@ export function BookingsPage() {
   }
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="font-display text-3xl">Bookings</h1><a href="/api/admin?export=bookings"><Btn icon="download">Export CSV</Btn></a></div>
+      <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="font-display text-3xl">Bookings</h1><div className="flex flex-wrap gap-2"><RemindersButton /><a href="/api/admin?export=bookings"><Btn icon="download">Export CSV</Btn></a></div></div>
       <Card>
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <Segmented label="status" value={tab} onChange={setTab} options={[{ v: "all", label: `All ${counts.all}` }, ...STATUSES.map((s) => ({ v: s, label: <span className="capitalize">{s} {counts[s]}</span> }))]} />
@@ -178,6 +181,7 @@ export function BookingDrawer({ id, onClose }: { id: number | null; onClose: () 
         <div><Label>Private notes</Label>
           <div className="space-y-2">{notes.map((n: any) => <div key={n.id} className="group flex items-start gap-2 rounded-xl bg-amber-400/[.07] p-3 text-sm"><span className="flex-1 text-ivory/85">{n.text}<span className="mt-1 block text-xs text-ivory/35">{ago(n.created)}</span></span><button aria-label="Delete note" onClick={() => act({ action: "deleteNote", id: n.id })} className="opacity-0 transition group-hover:opacity-100"><Icon n="trash" className="h-4 w-4 text-red-300" /></button></div>)}</div>
           <form className="mt-2 flex gap-2" onSubmit={async (e) => { e.preventDefault(); if (!note.trim()) return; await act({ action: "addNote", entity: "booking", ref: b.id, text: note }, "Note added"); setNote(""); }}><input className={field} placeholder="Add a private note (only you see this)…" aria-label="Note" value={note} onChange={(e) => setNote(e.target.value)} /><Btn v="soft">Add</Btn></form></div>
+        <SummaryEditor key={b.id} b={b} />
         {b.user_id && <Btn icon="clients" onClick={() => { onClose(); openClient(b.user_id); }}>View client profile</Btn>}
         {!b.phone && <p className="text-xs text-amber-300">No phone number on file, so WhatsApp links won&apos;t reach the client. Ask them to share it.</p>}
       </>)}
@@ -229,30 +233,34 @@ export function ClientsPage() {
     { key: "j", label: "Joined", sort: (c) => c.created, render: (c) => <span className="text-ivory/55">{fdate(c.created)}</span> },
   ];
   return (
-    <div className="space-y-6"><div className="flex items-center justify-between"><h1 className="font-display text-3xl">Clients</h1><a href="/api/admin?export=customers"><Btn icon="download">Export CSV</Btn></a></div>
+    <div className="space-y-6"><div className="flex items-center justify-between"><h1 className="font-display text-3xl">Clients</h1><div className="flex flex-wrap gap-2"><ImportClientsButton /><a href="/api/admin?export=customers"><Btn icon="download">Export CSV</Btn></a></div></div>
+      <ResetRequests />
       <Card><DataTable rows={d.customers} cols={cols} rowKey={(c) => c.id} search={(c) => `${c.name} ${c.email} ${c.phone || ""}`} searchPlaceholder="Search clients…" onRow={(c) => openClient(c.id)} empty={<Empty icon="clients" title="No clients yet" hint="Guests can book without an account. Registered clients appear here." />} /></Card></div>
   );
 }
 
 export function ClientDrawer({ id, onClose }: { id: number | null; onClose: () => void }) {
-  const { d, act, openBooking, go } = useAdmin(); const [note, setNote] = useState("");
+  const { d, act, openBooking, go } = useAdmin(); const [note, setNote] = useState(""); const [reset, setReset] = useState<number | null>(null);
   const c = d.customers.find((x: any) => x.id === id);
   const bks = d.bookings.filter((b: any) => b.user_id === id); const reads = d.readings.filter((r: any) => r.email === c?.email);
   const spent = d.payments.filter((p: any) => p.user_id === id && p.status === "paid").reduce((a: number, p: any) => a + p.amount, 0);
   const notes = d.notes.filter((n: any) => n.entity === "client" && n.ref === id);
   return (
+    <>
     <SlideOver open={!!c} onClose={onClose} title={c?.name || ""} subtitle={c && <span>{c.email}{c.phone ? ` · ${c.phone}` : ""}</span>}>
       {c && (<>
         <div className="grid grid-cols-3 gap-3 text-center">{[["Bookings", bks.length], ["Readings", reads.length], ["Spent", inr(spent)]].map(([k, v]) => <div key={String(k)} className="rounded-xl bg-white/[.04] p-3"><p className="font-display text-2xl">{v}</p><Label>{k}</Label></div>)}</div>
         <div className="flex items-center justify-between rounded-xl bg-white/[.04] p-4"><div><p className="text-ivory">Premium member</p><p className="text-xs text-ivory/45">Unlocks priority slots</p></div><Switch label="Premium" checked={!!c.premium} onChange={(v) => act({ action: "userSet", id: c.id, premium: v, credits: c.credits }, v ? "Premium on" : "Premium off")} /></div>
         <div className="flex items-center justify-between rounded-xl bg-white/[.04] p-4"><div><p className="text-ivory">Package credits</p><p className="text-xs text-ivory/45">Free sessions available</p></div>
           <div className="flex items-center gap-3"><Btn size="sm" aria-label="Remove credit" disabled={c.credits < 1} onClick={() => act({ action: "userSet", id: c.id, premium: !!c.premium, credits: c.credits - 1 })}>−</Btn><b className="w-6 text-center font-display text-2xl">{c.credits}</b><Btn size="sm" aria-label="Add credit" onClick={() => act({ action: "userSet", id: c.id, premium: !!c.premium, credits: c.credits + 1 }, "Credit added")}>+</Btn></div></div>
-        <div className="flex flex-wrap gap-2">{c.phone && <a href={`https://wa.me/${waNumber(c.phone)}`} target="_blank" rel="noreferrer"><Btn icon="whatsapp">WhatsApp</Btn></a>}<Btn icon="chat" onClick={() => { onClose(); go("chat"); }}>Open chat</Btn></div>
+        <div className="flex flex-wrap gap-2">{c.phone && <a href={`https://wa.me/${waNumber(c.phone)}`} target="_blank" rel="noreferrer"><Btn icon="whatsapp">WhatsApp</Btn></a>}<Btn icon="chat" onClick={() => { onClose(); go("chat"); }}>Open chat</Btn><Btn icon="shield" onClick={() => setReset(c.id)}>Password reset link</Btn></div>
         <div><Label>Bookings</Label>{bks.length ? <ul className="space-y-2">{bks.slice(0, 8).map((b: any) => <li key={b.id}><button onClick={() => { onClose(); setTimeout(() => openBooking(b.id), 200); }} className="flex w-full items-center justify-between rounded-xl bg-white/[.04] p-3 text-left text-sm hover:bg-white/[.08]"><span>{b.service_name}<span className="block text-xs text-ivory/45">{fshort(b.date)} · {b.time}</span></span><Badge tone={STATUS_TONE[b.status]}>{b.status}</Badge></button></li>)}</ul> : <p className="text-sm text-ivory/40">No bookings yet.</p>}</div>
         <div><Label>Private notes</Label><div className="space-y-2">{notes.map((n: any) => <div key={n.id} className="flex items-start gap-2 rounded-xl bg-amber-400/[.07] p-3 text-sm"><span className="flex-1">{n.text}</span><button aria-label="Delete note" onClick={() => act({ action: "deleteNote", id: n.id })}><Icon n="trash" className="h-4 w-4 text-red-300" /></button></div>)}</div>
           <form className="mt-2 flex gap-2" onSubmit={async (e) => { e.preventDefault(); if (!note.trim()) return; await act({ action: "addNote", entity: "client", ref: c.id, text: note }, "Note added"); setNote(""); }}><input className={field} placeholder="Add a note…" aria-label="Client note" value={note} onChange={(e) => setNote(e.target.value)} /><Btn v="soft">Add</Btn></form></div>
       </>)}
     </SlideOver>
+    <ResetLinkModal userId={reset} onClose={() => setReset(null)} />
+    </>
   );
 }
 void panel;

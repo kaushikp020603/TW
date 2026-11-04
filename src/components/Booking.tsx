@@ -1,11 +1,14 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SERVICES, SITE, waLink, IMG } from "@/config/site";
 import { openAuth, useUser } from "@/lib/useUser";
+import PayBox from "./PayBox";
+import { confetti } from "@/lib/confetti";
+import { track, trackOnce } from "@/lib/track";
 
 type Svc = { id: string; name: string; price: number; mins: string; blurb: string; kind?: string; sessions?: number };
 type Slot = { time: string; available: boolean; priority?: boolean };
-type Bk = { code: string; service_name: string; price: number; discount: number; date: string; time: string; status: string; name?: string; kind?: string; meeting_link?: string | null };
+type Bk = { code: string; service_name: string; price: number; discount: number; date: string; time: string; status: string; name?: string; kind?: string; meeting_link?: string | null; has_summary?: number };
 const KEY = "arcana-codes";
 
 const iso = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
@@ -14,14 +17,21 @@ const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
 const STATUS_STYLE: Record<string, string> = { pending: "text-champagne", confirmed: "text-emerald-300", cancelled: "text-red-300", rejected: "text-red-300", completed: "text-lavender" };
 
 function useSlots(date: string, bump = 0) {
-  const [slots, setSlots] = useState<Slot[]>([]); const [hidden, setHidden] = useState(false);
+  const [slots, setSlots] = useState<Slot[]>([]); const [hidden, setHidden] = useState(false); const [loading, setLoading] = useState(true);
   useEffect(() => {
     if (!date) return;
     let live = true;
-    fetch(`/api/public?q=slots&date=${date}`).then((r) => r.json()).then((j) => { if (live) { setSlots(j.slots || []); setHidden(!!j.priorityHidden); } }).catch(() => {});
+    setLoading(true); // eslint-disable-line react-hooks/set-state-in-effect
+    fetch(`/api/public?q=slots&date=${date}`).then((r) => r.json()).then((j) => { if (live) { setSlots(j.slots || []); setHidden(!!j.priorityHidden); setLoading(false); } }).catch(() => { if (live) setLoading(false); });
     return () => { live = false; };
   }, [date, bump]);
-  return { slots, hidden };
+  return { slots, hidden, loading };
+}
+
+function useIsMobile() {
+  const [m, setM] = useState(false);
+  useEffect(() => { const q = matchMedia("(max-width: 639px)"); const f = () => setM(q.matches); f(); q.addEventListener("change", f); return () => q.removeEventListener("change", f); }, []);
+  return m;
 }
 
 export default function Booking() {
@@ -37,8 +47,14 @@ export default function Booking() {
   const [done, setDone] = useState<Bk | null>(null);
   const [mine, setMine] = useState<Bk[]>([]);
   const [bump, setBump] = useState(0);
-  const { slots, hidden: priorityHidden } = useSlots(date, bump);
-  const [acct, setAcct] = useState({ premium: false, credits: 0 }); const [useCredit, setUseCredit] = useState(false); const [pkgMsg, setPkgMsg] = useState<{ text: string; wa: string } | null>(null);
+  const { slots, hidden: priorityHidden, loading: slotsLoading } = useSlots(date, bump);
+  const mobile = useIsMobile(); const [step, setStep] = useState(1); const [inView, setInView] = useState(false); const secRef = useRef<HTMLElement>(null);
+  const vis = (n: number) => (mobile && step !== n ? "hidden" : "");
+  useEffect(() => { const el = secRef.current; if (!el) return; const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold: 0.05 }); io.observe(el); return () => io.disconnect(); }, []);
+  const stickyOn = mobile && inView;
+  useEffect(() => { document.body.classList.toggle("has-sticky-bar", stickyOn); return () => document.body.classList.remove("has-sticky-bar"); }, [stickyOn]);
+  const goStep = (n: number) => { setStep(n); secRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); };
+  const [acct, setAcct] = useState<{ premium: boolean; credits: number; refCode?: string; refPercent?: number }>({ premium: false, credits: 0 }); const [useCredit, setUseCredit] = useState(false); const [pkgMsg, setPkgMsg] = useState<{ text: string; wa: string } | null>(null);
 
   useEffect(() => {
     const t = new Date(); if (t.getHours() >= 20) t.setDate(t.getDate() + 1);
@@ -46,11 +62,12 @@ export default function Booking() {
     setDates(Array.from({ length: 14 }, (_, i) => { const d = new Date(t); d.setDate(t.getDate() + i); return iso(d); }));
     setDate(iso(t));
     fetch("/api/public?q=services").then((r) => r.json()).then((j) => j.services?.length && setServices(j.services)).catch(() => {});
+    const ref = new URLSearchParams(location.search).get("ref"); if (ref && /^ARC-[A-Z0-9]{5}$/i.test(ref)) setCode(ref.toUpperCase());
     const h = (e: Event) => { const id = (e as CustomEvent).detail?.serviceId; if (id) setService(id); };
     addEventListener("arcana:book", h); return () => removeEventListener("arcana:book", h);
   }, []);
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { if (!user) { setAcct({ premium: false, credits: 0 }); return; } fetch("/api/site?q=account").then((r) => r.json()).then((j) => setAcct({ premium: !!j.premium, credits: j.credits || 0 })).catch(() => {}); }, [user, done]);
+  useEffect(() => { if (!user) { setAcct({ premium: false, credits: 0 }); return; } fetch("/api/site?q=account").then((r) => r.json()).then((j) => setAcct({ premium: !!j.premium, credits: j.credits || 0, refCode: j.refCode, refPercent: j.refPercent })).catch(() => {}); }, [user, done]);
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (user) { setName((n) => n || user.name); setPhone((p) => p || user.phone || ""); } }, [user]);
 
@@ -82,7 +99,8 @@ export default function Booking() {
     const j = await r.json(); setBusy(false);
     if (!r.ok) { setErr(j.error || "Could not save your request."); setBump((b) => b + 1); setTime(""); return; }
     try { const c = JSON.parse(localStorage.getItem(KEY) || "[]"); localStorage.setItem(KEY, JSON.stringify([j.booking.code, ...c].slice(0, 12))); } catch {}
-    setDone(j.booking); setTime(""); setBump((b) => b + 1); loadMine();
+    track("booking_submit"); confetti(0.5, 0.3);
+    setDone(j.booking); setStep(1); setTime(""); setBump((b) => b + 1); loadMine();
   }
   async function buyPackage(p: Svc) {
     if (!user) { openAuth("register"); return; }
@@ -92,7 +110,7 @@ export default function Booking() {
   const waText = (b: Bk) => `Hi! I'd like to confirm my tarot booking.\n\nRef: ${b.code}\nService: ${b.service_name} (${inr(b.price - b.discount)})\nDate: ${label(b.date)}\nTime: ${b.time}\nName: ${b.name ?? name}\n\nPlease confirm and share payment details. Thank you!`;
 
   return (
-    <section id="book" className="relative isolate overflow-hidden px-5 py-28 sm:px-8" aria-labelledby="book-h">
+    <section id="book" ref={secRef} className="relative isolate overflow-hidden px-5 py-28 sm:px-8" aria-labelledby="book-h">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={IMG.lavender} alt="" aria-hidden loading="lazy" className="absolute right-0 top-0 -z-10 hidden h-full w-[42%] object-cover object-[60%_20%] opacity-30 [mask-image:linear-gradient(270deg,#000,transparent)] lg:block" />
       <div className="mx-auto max-w-6xl">
@@ -113,15 +131,22 @@ export default function Booking() {
               <a className="btn btn-solid" href={waLink(waText({ ...done, name }))} target="_blank" rel="noopener noreferrer">Send on WhatsApp</a>
               <button className="btn" onClick={() => setDone(null)}>Book another</button>
             </div>
+            <PayBox amount={done.price - done.discount} code={done.code} service={done.service_name} />
           </div>
         ) : (
           <div className="mt-12 grid gap-8 lg:grid-cols-[1.2fr_1fr]">
-            <div className="space-y-10">
-              <fieldset>
+            {mobile && (
+              <div className="-mb-2" aria-label={`Step ${step} of 3`}>
+                <div className="flex gap-1.5">{[1, 2, 3].map((n) => <span key={n} className={`h-1 flex-1 rounded-full transition-colors ${n <= step ? "bg-gold" : "bg-gold/20"}`} />)}</div>
+                <p className="eyebrow mt-3">Step {step} of 3 · {["Choose a service", "Pick a date and time", "Your details"][step - 1]}</p>
+              </div>
+            )}
+            <div className={`space-y-10 ${mobile && step === 3 ? "hidden" : ""}`}>
+              <fieldset className={vis(1)}>
                 <legend className="eyebrow mb-4">1 · Service</legend>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {bookable.map((s) => (
-                    <button key={s.id} onClick={() => { setService(s.id); setCp(null); setCpMsg(""); }} aria-pressed={service === s.id}
+                    <button key={s.id} onClick={() => { setService(s.id); setCp(null); setCpMsg(""); trackOnce("booking_start"); }} aria-pressed={service === s.id}
                       className={`glass p-4 text-left transition ${service === s.id ? "!border-gold bg-gold/15" : "hover:!border-gold/60"}`}>
                       <span className="flex items-baseline justify-between gap-2"><span className="font-display text-xl text-champagne">{s.name}</span><span className="text-sm text-gold">{inr(s.price)}</span></span>
                       <span className="mt-1 block text-xs font-light text-ivory/60">{s.kind === "video" ? "📹 " : s.kind === "voice" ? "🎧 " : ""}{s.mins} · {s.blurb}</span>
@@ -129,24 +154,25 @@ export default function Booking() {
                   ))}
                 </div>
               </fieldset>
-              <fieldset>
+              <fieldset className={vis(2)}>
                 <legend className="eyebrow mb-4">2 · Date</legend>
                 <div className="scrollbar-none -mx-5 flex gap-2 overflow-x-auto px-5 pb-2 sm:mx-0 sm:flex-wrap sm:px-0">
-                  {dates.map((d) => <button key={d} onClick={() => { setDate(d); setTime(""); }} aria-pressed={date === d} className={`shrink-0 border px-4 py-3 text-sm transition ${date === d ? "border-gold bg-gold text-midnight" : "border-gold/30 hover:border-gold"}`}>{label(d)}</button>)}
+                  {dates.map((d) => <button key={d} onClick={() => { setDate(d); setTime(""); trackOnce("booking_start"); }} aria-pressed={date === d} className={`shrink-0 border px-4 py-3 text-sm transition ${date === d ? "border-gold bg-gold text-midnight" : "border-gold/30 hover:border-gold"}`}>{label(d)}</button>)}
                 </div>
               </fieldset>
-              <fieldset>
+              <fieldset className={vis(2)}>
                 <legend className="eyebrow mb-4">3 · Time</legend>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {slots.map((s) => <button key={s.time} disabled={!s.available} onClick={() => setTime(s.time)} aria-pressed={time === s.time}
+                  {slotsLoading && !slots.length && Array.from({ length: 8 }).map((_, i) => <span key={i} aria-hidden className="h-[46px] animate-pulse rounded-sm bg-gold/10" />)}
+                  {slots.map((s) => <button key={s.time} disabled={!s.available} onClick={() => { setTime(s.time); trackOnce("booking_start"); }} aria-pressed={time === s.time}
                     className={`border px-3 py-3 text-sm transition disabled:cursor-not-allowed disabled:line-through disabled:opacity-30 ${time === s.time ? "border-gold bg-gold text-midnight" : "border-gold/30 hover:border-gold"}`}>{s.priority ? "★ " : ""}{s.time}</button>)}
                 </div>
                 {priorityHidden && <p className="mt-2 text-xs text-lavender">Premium members also get early and late priority slots.</p>}
-                {slots.length > 0 && slots.every((s) => !s.available) && <p className="mt-2 text-sm text-champagne">This day is fully booked. Please choose another date.</p>}
+                {slots.length > 0 && slots.every((s) => !s.available) && <div className="mt-3 space-y-3"><p className="text-sm text-champagne">This day is fully booked. Please choose another date, or join the waitlist and the reader will message you if a slot opens.</p><Waitlist date={date} serviceId={service} defaultName={name} /></div>}
               </fieldset>
             </div>
 
-            <div className="space-y-6">
+            <div className={`space-y-6 ${vis(3)}`}>
               <div className="glass frame space-y-5 p-6 sm:p-8">
                 <p className="eyebrow">4 · Your details</p>
                 <div><label htmlFor="nm" className="mb-1 block text-xs text-ivory/60">Name</label><input id="nm" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" className="w-full border border-gold/30 bg-midnight/95 p-3 font-light" /></div>
@@ -171,6 +197,17 @@ export default function Booking() {
           </div>
         )}
 
+        {stickyOn && !done && (
+          <div className="fixed inset-x-0 bottom-0 z-[66] border-t border-gold/40 bg-midnight px-4 pb-[max(.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_40px_rgba(0,0,0,.6)]" role="region" aria-label="Booking summary">
+            <div className="mx-auto flex max-w-md items-center gap-3">
+              <div className="min-w-0 flex-1"><p className="truncate text-xs text-ivory/60">{svc?.name}{date && time ? ` · ${label(date)} ${time}` : ""}</p><p className="font-display text-2xl text-champagne">{inr(final)}</p></div>
+              {step > 1 && <button className="btn !px-4 !py-2.5" onClick={() => goStep(step - 1)}>Back</button>}
+              {step < 3 ? <button className="btn btn-solid !px-5 !py-2.5 disabled:opacity-40" disabled={step === 2 && !time} onClick={() => goStep(step + 1)}>Next</button>
+                : <button className="btn btn-solid !px-5 !py-2.5 disabled:opacity-40" disabled={!ready || busy} onClick={submit}>{busy ? "Saving…" : "Reserve"}</button>}
+            </div>
+          </div>
+        )}
+
         {packages.length > 0 && (
           <div className="mt-16" aria-labelledby="pk-h">
             <p id="pk-h" className="eyebrow mb-4">Reading packages · save when you buy together</p>
@@ -184,14 +221,41 @@ export default function Booking() {
         )}
 
         {mine.length > 0 && <MyBookings list={mine} reload={loadMine} />}
+
+        {user && acct.refCode && (
+          <div className="glass frame mt-12 flex flex-wrap items-center gap-5 p-6 sm:p-8" aria-label="Invite a friend">
+            <div className="min-w-0 flex-1"><p className="eyebrow">Invite a friend</p><p className="font-display mt-1 text-2xl text-champagne">They get {acct.refPercent ?? 10}% off. You get a free session.</p>
+              <p className="mt-1 text-sm font-light text-ivory/65">Share your code. When their first reading is completed, a session credit lands in your account.</p></div>
+            <div className="flex flex-col items-start gap-2"><code className="rounded-lg border border-gold/40 bg-midnight px-4 py-2 font-display text-2xl tracking-[.2em] text-gold">{acct.refCode}</code>
+              <div className="flex gap-2"><button className="btn !py-2" onClick={async () => { await navigator.clipboard?.writeText(`${location.origin}/?ref=${acct.refCode}`).catch(() => {}); }}>Copy link</button>
+                <a className="btn btn-solid !py-2" target="_blank" rel="noopener noreferrer" href={`https://wa.me/?text=${encodeURIComponent(`I love my tarot readings at THE ARCANA ✦ Use my code ${acct.refCode} for ${acct.refPercent ?? 10}% off your first reading: ${location.origin}/?ref=${acct.refCode}`)}`}>Share on WhatsApp</a></div></div>
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
+function Waitlist({ date, serviceId, defaultName }: { date: string; serviceId: string; defaultName: string }) {
+  const [name, setName] = useState(defaultName); const [contact, setContact] = useState(""); const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
+  async function join(e: React.FormEvent) {
+    e.preventDefault();
+    const r = await fetch("/api/site", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "waitlist", date, name, contact, serviceId }) }); const j = await r.json();
+    setMsg({ ok: r.ok, t: j.message || j.error });
+  }
+  return (
+    <form onSubmit={join} className="flex flex-wrap items-start gap-2" aria-label="Join the waitlist">
+      <input aria-label="Your name" required placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} className="min-w-0 flex-1 basis-40 border border-gold/30 bg-midnight/95 p-3 text-sm font-light" />
+      <input aria-label="WhatsApp number or email" required placeholder="WhatsApp number or email" value={contact} onChange={(e) => setContact(e.target.value)} className="min-w-0 flex-1 basis-52 border border-gold/30 bg-midnight/95 p-3 text-sm font-light" />
+      <button className="btn !py-3">Join waitlist</button>
+      {msg && <p role={msg.ok ? "status" : "alert"} className={`basis-full text-xs ${msg.ok ? "text-emerald-300" : "text-red-300"}`}>{msg.t}</p>}
+    </form>
+  );
+}
+
 function MyBookings({ list, reload }: { list: Bk[]; reload: () => void }) {
   const [edit, setEdit] = useState<string | null>(null);
-  const [d, setD] = useState(""); const [t, setT] = useState(""); const [msg, setMsg] = useState("");
+  const [d, setD] = useState(""); const [t, setT] = useState(""); const [msg, setMsg] = useState(""); const [payFor, setPayFor] = useState<string | null>(null);
   const { slots } = useSlots(edit ? d : "");
   const patch = async (b: object) => {
     const r = await fetch("/api/bookings", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(b) }); const j = await r.json();
@@ -212,10 +276,13 @@ function MyBookings({ list, reload }: { list: Bk[]; reload: () => void }) {
             {["pending", "confirmed"].includes(b.status) && (
               <p className="mt-2 flex flex-wrap gap-4 text-xs uppercase tracking-[.15em]">
                 <a className="text-lavender hover:text-gold" target="_blank" rel="noopener noreferrer" href={waLink(`Hi! Regarding my booking ${b.code} (${b.service_name}, ${label(b.date)} ${b.time}).`)}>Message on WhatsApp</a>
+                {b.has_summary ? <a className="text-gold hover:text-champagne" href={`/summary/${b.code}`}>View my summary</a> : null}
+                {b.status === "pending" && <button className="text-gold hover:text-champagne" onClick={() => setPayFor(payFor === b.code ? null : b.code)}>Pay now</button>}
                 <button className="text-lavender hover:text-gold" onClick={() => { setEdit(edit === b.code ? null : b.code); setD(b.date); setT(""); setMsg(""); }}>Reschedule</button>
                 <button className="text-lavender hover:text-gold" onClick={() => confirm("Cancel this booking?") && patch({ code: b.code, action: "cancel" })}>Cancel</button>
               </p>
             )}
+            {payFor === b.code && <PayBox amount={b.price - b.discount} code={b.code} service={b.service_name} />}
             {edit === b.code && (
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <input type="date" aria-label="New date" value={d} min={iso(new Date())} onChange={(e) => { setD(e.target.value); setT(""); }} className="border border-gold/30 bg-midnight/95 p-2" />

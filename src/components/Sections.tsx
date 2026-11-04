@@ -5,6 +5,8 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { IMG, SITE, waLink } from "@/config/site";
 import { startBooking, startReading } from "@/lib/events";
+import { track } from "@/lib/track";
+import InstallButton from "./InstallButton";
 import { CardBack } from "./TarotCard";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -169,23 +171,51 @@ export function FinalCTA() {
   );
 }
 
-const L = ({ h, t }: { h: string; t: string }) => <a href={h} className="block py-2 font-light text-ivory/70 transition hover:text-gold">{t}</a>;
+const L = ({ h, t, ext }: { h: string; t: string; ext?: boolean }) => <a href={h} {...(ext ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="block py-2 font-light text-ivory/70 transition hover:text-gold">{t}</a>;
+
+function WeeklyCard() {
+  const [contact, setContact] = useState(""); const [ok, setOk] = useState(false); const [consent, setConsent] = useState(false); const [msg, setMsg] = useState("");
+  async function submit(e: React.FormEvent) {
+    e.preventDefault(); setMsg("");
+    const r = await fetch("/api/site", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "subscribe", contact, consent }) }); const j = await r.json();
+    if (r.ok) { setOk(true); track("subscribe"); } else setMsg(j.error || "Something went wrong.");
+  }
+  return (
+    <form onSubmit={submit} className="glass frame mx-auto mb-14 flex max-w-6xl flex-col gap-4 p-6 sm:flex-row sm:items-center sm:p-8" aria-label="Weekly card signup">
+      <div className="sm:flex-1"><p className="font-display text-2xl text-champagne">Your weekly card, free</p><p className="text-sm font-light text-ivory/70">One tarot card and a reflection each week by email or WhatsApp. Unsubscribe any time.</p></div>
+      {ok ? <p role="status" className="text-emerald-300">You&apos;re in! Your first card arrives soon ✦</p> : (
+        <div className="sm:w-[460px]">
+          <div className="flex gap-2"><input aria-label="Email or WhatsApp number" required placeholder="Email or WhatsApp number" value={contact} onChange={(e) => setContact(e.target.value)} className="min-w-0 flex-1 border border-gold/30 bg-midnight/95 p-3 font-light text-ivory placeholder:text-ivory/35" /><button className="btn btn-solid !px-5">Join</button></div>
+          <label className="mt-2 flex items-start gap-2 text-xs font-light text-ivory/60"><input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5" /> I agree to receive the weekly card and understand I can opt out any time.</label>
+          {msg && <p role="alert" className="mt-1 text-xs text-red-300">{msg}</p>}
+        </div>)}
+    </form>
+  );
+}
 
 export function Footer() {
+  const [biz, setBiz] = useState<{ instagram?: string; channel?: string }>({}); const [large, setLarge] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { fetch("/api/site?q=business").then((r) => r.json()).then(setBiz).catch(() => {}); try { setLarge(localStorage.getItem("arcana-text") === "large"); } catch {} }, []);
+  const toggleText = () => { const next = !large; setLarge(next); document.documentElement.dataset.text = next ? "large" : ""; try { localStorage.setItem("arcana-text", next ? "large" : "normal"); } catch {} };
   return (
     <footer className="border-t border-gold/20 bg-midnight px-5 pb-10 pt-16 sm:px-8">
+      <WeeklyCard />
       <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-5">
         <div className="md:col-span-1">
           <p className="font-display text-2xl tracking-[.35em] text-champagne">THE ARCANA</p>
           <p className="mt-3 text-sm font-light text-ivory/60">{SITE.tagline}</p>
         </div>
-        <div><p className="eyebrow mb-3">Explore</p><L h="#about" t="About" /><L h="#worlds" t="Readings" /><L h="#book" t="Book a session" /><L h="#reading" t="Pick a card" /></div>
+        <div><p className="eyebrow mb-3">Explore</p><L h="/about" t="About the reader" /><L h="#worlds" t="Readings" /><L h="#book" t="Book a session" /><L h="#reading" t="Pick a card" /><L h="/cards" t="Card meanings" /><L h="/gift" t="Gift a reading" /></div>
         <div><p className="eyebrow mb-3">Contact</p>
-          <L h={waLink("Hi! I have a question about a tarot reading.")} t={`WhatsApp ${SITE.whatsappDisplay}`} />
-          <L h={SITE.instagram} t="Instagram" />
+          <L h={waLink("Hi! I have a question about a tarot reading.")} t={`WhatsApp ${SITE.whatsappDisplay}`} ext />
+          {biz.channel && <L h={biz.channel} t="WhatsApp Channel" ext />}
+          {biz.instagram && <L h={biz.instagram} t="Instagram" ext />}
         </div>
         <div><p className="eyebrow mb-3">More</p><L h="/insights" t="Your Stars & Compatibility" /><L h="/journey" t="My Journey" /><L h="/community" t="Community" /><L h="/blog" t="Blog" /><L h="/readers" t="Readers" /><L h="/chat" t="Ask the Reader" /></div>
-        <div><p className="eyebrow mb-3">Legal</p><L h="/privacy" t="Privacy policy" /><L h="/terms" t="Terms & conditions" /><L h="/disclaimer" t="Tarot disclaimer" /></div>
+        <div><p className="eyebrow mb-3">Legal & settings</p><L h="/privacy" t="Privacy policy" /><L h="/terms" t="Terms & conditions" /><L h="/disclaimer" t="Tarot disclaimer" />
+          <button onClick={toggleText} aria-pressed={large} className="block py-2 text-left font-light text-ivory/70 transition hover:text-gold">{large ? "Normal text size" : "Larger text"}</button>
+          <InstallButton className="block py-2 text-left font-light text-gold transition hover:text-champagne" /></div>
       </div>
       <p className="mx-auto mt-12 max-w-6xl border-t border-gold/10 pt-6 text-xs font-light leading-relaxed text-ivory/45">
         Tarot readings are for personal reflection and entertainment only. They are not predictions or guarantees and are not a substitute for professional medical, legal or financial advice.

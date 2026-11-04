@@ -31,6 +31,24 @@ Copy `.env.example` → `.env.local` and set `ANTHROPIC_API_KEY`. Without it the
 Locally: leave the Turso variables empty and the app uses `./data/arcana.db`.
 Rotate the Turso token (Turso dashboard) if it is ever shared or leaked.
 
+
+## Testing and CI
+```bash
+npm test            # builds, then runs every end-to-end suite on a fresh server + database each
+npm run test:fast   # same without rebuilding
+node tests/run-all.mjs core admin   # only some suites (core, extended, admin, experience, growth, responsive)
+```
+Set `PW_CHANNEL=msedge` (or `chrome`) to use an installed browser; otherwise run `npx playwright-core install chromium` once.
+GitHub Actions (`.github/workflows/ci.yml`) runs lint, type check, build and all suites on every push and pull request.
+
+## Growth features
+- **Password reset:** "Forgot your password?" in the sign-in window. With `RESEND_API_KEY` it emails a link; without it the admin creates a one-time link (Clients → client → Password reset link) and sends it on WhatsApp.
+- **UPI payments:** set the UPI ID in Admin → Settings → Business details. Clients then see a QR code, Copy UPI ID and an "I've paid" WhatsApp button after booking.
+- **SEO:** per-page metadata, structured data, `/sitemap.xml`, `/robots.txt`, an About page and a page for each of the 22 cards (`/cards`). Set `NEXT_PUBLIC_SITE_URL`.
+- **Analytics:** cookie-free and private (no IP addresses stored); see Admin → Analytics & health. Point a free uptime monitor at `/api/health`.
+- **Automatic backups and reminders:** `vercel.json` schedules a nightly backup and a daily reminder run. Set `CRON_SECRET` in Vercel.
+- **PWA:** the site is installable and works offline for visited pages. Regenerate icons with `npm run icons`; recompress artwork with `npm run optimize-images`.
+
 ## Upgrading to real scroll-scrubbed video (scroll-world skill)
 The "Four worlds" section already does a scroll-driven fly-through using your art. Each entry in `WORLDS` (`src/components/Worlds.tsx`) accepts `clip: "/video/xyz.mp4"`; if set, the clip is scrubbed by scroll position. The `scroll-world` skill (installed in `~/.claude/skills`) can generate those clips, but it needs paid Higgsfield/Monid credits plus `ffmpeg`.
 
