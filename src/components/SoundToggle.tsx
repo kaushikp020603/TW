@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
-import { isAmbientOn, onAmbient, toggleAmbient } from "@/lib/ambient";
+import { getAmbientMode, isAmbientOn, onAmbient, toggleAmbient } from "@/lib/ambient";
 
 export default function SoundToggle({ className = "" }: { className?: string }) {
   const [on, setOn] = useState(false);
+  const [off, setOff] = useState(false);
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setOn(isAmbientOn()); return onAmbient(setOn); }, []);
+  useEffect(() => { setOn(isAmbientOn()); setOff(getAmbientMode() === "off"); return onAmbient((v) => { setOn(v); setOff(getAmbientMode() === "off"); }); }, []);
+  if (off) return null;
   return (
     <button onClick={toggleAmbient} aria-pressed={on} aria-label={on ? "Turn ambient sound off" : "Turn ambient sound on"}
       className={`flex h-10 w-10 items-center justify-center rounded-full border border-gold/50 text-champagne transition hover:bg-gold hover:text-midnight ${className}`}>

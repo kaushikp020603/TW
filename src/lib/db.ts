@@ -33,6 +33,7 @@ const SCHEMA = `
   CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY, entity TEXT NOT NULL, ref INTEGER NOT NULL, text TEXT NOT NULL, created INTEGER NOT NULL);
   CREATE TABLE IF NOT EXISTS activity (id INTEGER PRIMARY KEY, text TEXT NOT NULL, created INTEGER NOT NULL);
   CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);
+  CREATE TABLE IF NOT EXISTS media (id INTEGER PRIMARY KEY, name TEXT NOT NULL, mime TEXT NOT NULL, size INTEGER NOT NULL, data BLOB NOT NULL, created INTEGER NOT NULL);
   CREATE TABLE IF NOT EXISTS ratelimit (id INTEGER PRIMARY KEY, k TEXT NOT NULL, ts INTEGER NOT NULL);
   CREATE INDEX IF NOT EXISTS idx_ratelimit ON ratelimit (k, ts);
   CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings (date, time);
@@ -56,7 +57,7 @@ function connect(): Client {
 }
 
 // Bump SCHEMA_VERSION whenever the schema or seed data changes. Cold starts then cost a single query once migrated.
-const SCHEMA_VERSION = "v3:" + SITE.whatsappNumber;
+const SCHEMA_VERSION = "v4:" + SITE.whatsappNumber;
 
 async function init(c: Client) {
   try { const v = await c.execute("SELECT value FROM settings WHERE key='schema_version'"); if (v.rows[0]?.value === SCHEMA_VERSION) return; } catch { /* first run: tables don't exist yet */ }

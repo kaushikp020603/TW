@@ -6,18 +6,19 @@ import { Avatar, Badge, Btn, Icon, Skeleton, UiProvider, field, useUi, STATUS_TO
 import { Ctx, type Route } from "@/components/admin/ctx";
 import { BookingDrawer, BookingsPage, CalendarPage, ClientDrawer, ClientsPage, Dashboard, PaymentsPage } from "@/components/admin/pages1";
 import { AvailabilityPage, BlogPage, CardsPage, CouponsPage, NoticesPage, ReviewsPage, ServicesPage } from "@/components/admin/pages2";
+import { ExperiencePage } from "@/components/admin/pages4";
 import { ChatPage, CommunityPage, ReadersPage, ReadingsPage, ReportsPage, SettingsPage } from "@/components/admin/pages3";
 
 const NAV: { group: string; items: { r: Route; label: string; icon: string; badge?: string }[] }[] = [
   { group: "Overview", items: [{ r: "dashboard", label: "Dashboard", icon: "dashboard" }, { r: "calendar", label: "Calendar", icon: "calendar" }] },
   { group: "Business", items: [{ r: "bookings", label: "Bookings", icon: "bookings", badge: "bookings" }, { r: "payments", label: "Payments", icon: "payments", badge: "payments" }, { r: "clients", label: "Clients", icon: "clients" }, { r: "services", label: "Services & pricing", icon: "services" }, { r: "availability", label: "Availability", icon: "clock" }, { r: "coupons", label: "Coupons", icon: "coupons" }] },
-  { group: "Content", items: [{ r: "cards", label: "Tarot cards", icon: "cards" }, { r: "blog", label: "Blog", icon: "blog" }, { r: "notices", label: "Announcements", icon: "bell" }, { r: "reviews", label: "Reviews", icon: "star", badge: "reviews" }] },
+  { group: "Content", items: [{ r: "cards", label: "Tarot cards", icon: "cards" }, { r: "blog", label: "Blog", icon: "blog" }, { r: "experience", label: "Music & intro", icon: "sound" }, { r: "notices", label: "Announcements", icon: "bell" }, { r: "reviews", label: "Reviews", icon: "star", badge: "reviews" }] },
   { group: "Engagement", items: [{ r: "chat", label: "Chat", icon: "chat", badge: "chat" }, { r: "community", label: "Community", icon: "community", badge: "community" }, { r: "readers", label: "Readers", icon: "readers", badge: "readers" }, { r: "readings", label: "Saved readings", icon: "readings" }] },
   { group: "Insights", items: [{ r: "reports", label: "Reports", icon: "reports" }] },
   { group: "System", items: [{ r: "settings", label: "Settings", icon: "settings" }] },
 ];
 const ALL = NAV.flatMap((g) => g.items);
-const PAGES: Record<Route, React.ComponentType> = { dashboard: Dashboard, calendar: CalendarPage, bookings: BookingsPage, payments: PaymentsPage, clients: ClientsPage, services: ServicesPage, availability: AvailabilityPage, coupons: CouponsPage, cards: CardsPage, blog: BlogPage, notices: NoticesPage, reviews: ReviewsPage, chat: ChatPage, community: CommunityPage, readers: ReadersPage, readings: ReadingsPage, reports: ReportsPage, settings: SettingsPage };
+const PAGES: Record<Route, React.ComponentType> = { dashboard: Dashboard, calendar: CalendarPage, bookings: BookingsPage, payments: PaymentsPage, clients: ClientsPage, services: ServicesPage, availability: AvailabilityPage, coupons: CouponsPage, cards: CardsPage, blog: BlogPage, experience: ExperiencePage, notices: NoticesPage, reviews: ReviewsPage, chat: ChatPage, community: CommunityPage, readers: ReadersPage, readings: ReadingsPage, reports: ReportsPage, settings: SettingsPage };
 
 const post = (b: object) => fetch("/api/admin", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(b) });
 const fromHash = (): Route => { const h = (typeof location !== "undefined" ? location.hash.replace(/^#\/?/, "") : "") as Route; return ALL.some((i) => i.r === h) ? h : "dashboard"; };
@@ -69,7 +70,7 @@ function Admin() {
     addEventListener("keydown", k); return () => removeEventListener("keydown", k);
   }, [go]);
 
-  const ctx = useMemo(() => ({ d, act, go, openBooking: (id: number) => setBookingId(id), openClient: (id: number) => setClientId(id) }), [d, act, go]);
+  const ctx = useMemo(() => ({ d, act, go, reload: load, openBooking: (id: number) => setBookingId(id), openClient: (id: number) => setClientId(id) }), [d, act, go, load]);
 
   if (state === "loading") return <Splash />;
   if (state === "off") return <p className="p-10">Admin is disabled. Set <code>ADMIN_PASSWORD</code> in <code>.env.local</code> and restart.</p>;

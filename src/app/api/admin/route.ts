@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { adminChangePassword, adminConfigured, adminLogin, isAdmin, limited } from "@/lib/auth";
 import { rows, row, run, now } from "@/lib/db";
 import { sendMail } from "@/lib/mail";
+import { getConfig, saveConfig } from "@/lib/config";
 
 type B = Record<string, unknown> & { id?: number };
 const csv = (data: Record<string, unknown>[]) => {
@@ -48,6 +49,7 @@ export async function GET(req: Request) {
     count("SELECT COUNT(*) c FROM readers WHERE verified=0"),
     count("SELECT COUNT(*) c FROM (SELECT user_id, (SELECT sender FROM messages m2 WHERE m2.user_id=m.user_id ORDER BY created DESC LIMIT 1) AS last FROM messages m GROUP BY user_id) WHERE last='user'"),
   ]);
+  const [config, media] = await Promise.all([getConfig(), rows("SELECT id,name,mime,size,created FROM media ORDER BY created DESC")]);
   const paid = payments.filter((p) => p.status === "paid");
   const today = dayKey(Date.now());
   const days = Array.from({ length: 7 }, (_, i) => dayKey(Date.now() - (6 - i) * 864e5));
@@ -64,6 +66,7 @@ export async function GET(req: Request) {
     },
     weekly: days.map((d) => ({ day: d, revenue: sum((p) => dayKey(p.created) === d), bookings: bookings.filter((b) => dayKey(b.created) === d).length })),
     monthly: months.map((m) => ({ month: m, revenue: sum((p) => dayKey(p.created).startsWith(m)), bookings: bookings.filter((b) => dayKey(b.created).startsWith(m)).length })),
+    config, media,
     bookings, payments, customers, services, coupons, blocked, slots, reviews, readings, cardOverrides, posts, announcements, chats, threads, replies, readers, notes, activity, allMessages,
     alerts: { bookings: bookings.filter((b) => b.status === "pending").length, payments: payments.filter((p) => p.status === "pending").length, reviews: nReviews, community: nThreads + nReplies, readers: nReaders, chat: nChat },
   });
@@ -86,6 +89,12 @@ export async function POST(req: Request) {
         if (await adminChangePassword(S("current", 200), S("next", 200))) { await log("Admin password changed"); return NextResponse.json({ ok: true }); }
         return NextResponse.json({ error: "Current password is wrong, or the new one is under 8 characters." }, { status: 400 });
       case "addNote": { const t = S("text", 1000).trim(); if (t && ["booking", "client"].includes(S("entity"))) await run("INSERT INTO notes (entity,ref,text,created) VALUES (?,?,?,?)", S("entity"), N("ref"), t, now()); break; }
+      case "saveConfig": { const c = await saveConfig(b.config); await log(`Experience updated: music ${c.music.mode}${c.music.mode === "preset" ? " (" + c.music.preset + ")" : ""}, intro ${c.intro.style}`); break; }
+      case "deleteMedia": {
+        await run("DELETE FROM media WHERE id=?", N("id"));
+        const c = await getConfig(); if (c.music.mediaId === N("id")) await saveConfig({ ...c, music: { ...c.music, mode: "preset", mediaId: null, mediaName: "" } });
+        break;
+      }
       case "deleteNote": await run("DELETE FROM notes WHERE id=?", N("id")); break;
       case "bulkStatus": {
         if (!["confirmed", "cancelled", "completed", "rejected"].includes(S("status"))) break;

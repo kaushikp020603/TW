@@ -6,7 +6,7 @@ import SoundToggle from "./SoundToggle";
 
 type P = { x: number; y: number; tx: number; ty: number; sx: number; sy: number; r: number; d: number };
 
-export default function Intro({ onDone }: { onDone: () => void }) {
+export default function Intro({ onDone, speed = 1 }: { onDone: () => void; speed?: number }) {
   const root = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const [skipVisible, setSkipVisible] = useState(false);
@@ -18,7 +18,7 @@ export default function Intro({ onDone }: { onDone: () => void }) {
     finished.current = true;
     tlRef.current?.kill();
     try { sessionStorage.setItem("arcana-intro", "1"); } catch {}
-    gsap.to(root.current, { opacity: 0, duration: 0.9, ease: "power2.inOut", onComplete: onDone });
+    gsap.to(root.current, { opacity: 0, duration: Math.max(0.35, 0.9 / speed), ease: "power2.inOut", onComplete: onDone });
   };
 
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function Intro({ onDone }: { onDone: () => void }) {
     raf = requestAnimationFrame(draw);
 
     const el = root.current!;
-    const tl = gsap.timeline({ onComplete: () => setTimeout(finish, 900) });
+    const tl = gsap.timeline({ onComplete: () => setTimeout(finish, 900 / speed) });
     tlRef.current = tl;
     gsap.set(el.querySelectorAll(".i-moon"), { scale: 0.2, opacity: 0 });
     gsap.set(el.querySelectorAll(".i-card"), { y: 180, opacity: 0, rotate: 0 });
@@ -97,6 +97,7 @@ export default function Intro({ onDone }: { onDone: () => void }) {
       .to(s, { form: 1, duration: 2.2, ease: "power1.inOut" }, 5.0)
       .to(el.querySelectorAll(".i-card"), { y: mobile ? -150 : -210, opacity: 0.0, duration: 1.4, ease: "power2.in" }, 5.6)
       .to(el.querySelector(".i-tag"), { opacity: 1, y: 0, duration: 1 }, 7.0);
+    tl.timeScale(speed);
     setTimeout(() => setSkipVisible(true), 500);
     return () => { cancelAnimationFrame(raf); tl.kill(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps

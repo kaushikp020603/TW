@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser, limited } from "@/lib/auth";
 import { row, rows, run, now } from "@/lib/db";
+import { getConfig } from "@/lib/config";
 
 const ip = (r: Request) => r.headers.get("x-forwarded-for")?.split(",")[0] ?? "local";
 const J = (o: unknown, status = 200) => NextResponse.json(o, { status });
@@ -12,6 +13,7 @@ export async function GET(req: Request) {
   const user = await currentUser();
   switch (q) {
     case "cards": return J({ cards: await rows("SELECT * FROM card_overrides") });
+    case "config": return J(await getConfig());
     case "announce": return J({ items: await rows("SELECT id,text FROM announcements WHERE active=1 ORDER BY created DESC LIMIT 3") });
     case "blog": return J({ posts: await rows("SELECT slug,title,substr(body,1,180) AS excerpt,created FROM posts WHERE published=1 ORDER BY created DESC") });
     case "post": { const p = await row("SELECT slug,title,body,created FROM posts WHERE slug=? AND published=1", u.searchParams.get("slug") || ""); return p ? J({ post: p }) : J({ error: "Not found" }, 404); }

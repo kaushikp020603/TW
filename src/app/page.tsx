@@ -13,19 +13,31 @@ import { AuthModal } from "@/components/Account";
 import { Chapter, STORY } from "@/components/Story";
 import Announcements from "@/components/Announcements";
 import { syncCards } from "@/lib/cardsync";
+import { loadConfig } from "@/lib/clientConfig";
+import { configureAmbient } from "@/lib/ambient";
+import { INTRO_SPEED } from "@/lib/siteConfig";
 import { About, HowItWorks, Testimonials, FinalCTA, Footer } from "@/components/Sections";
 
 export default function Home() {
   const [intro, setIntro] = useState<boolean | null>(null); // null = deciding (avoids flash)
   const [cv, setCv] = useState(0);
+  const [introSpeed, setIntroSpeed] = useState(2.5);
   useEffect(() => { syncCards().then((c) => c && setCv((v) => v + 1)); }, []);
 
   useEffect(() => {
-    let seen = false;
-    try { seen = sessionStorage.getItem("arcana-intro") === "1"; } catch {}
-    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIntro(!(seen || reduced));
+    let live = true;
+    (async () => {
+      const cfg = await loadConfig(); if (!live) return;
+      configureAmbient(cfg.music);
+      const q = new URLSearchParams(location.search);
+      const preview = q.get("intro") === "preview";               // admin "Preview intro" link
+      const style = (preview && (["quick", "short", "full"] as const).find((x) => x === q.get("style"))) || cfg.intro.style;
+      let seen = false; try { seen = sessionStorage.getItem("arcana-intro") === "1"; } catch {}
+      const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      setIntroSpeed(style === "off" ? 1 : INTRO_SPEED[style]);
+      setIntro(preview ? true : !(style === "off" || seen || reduced));
+    })();
+    return () => { live = false; };
   }, []);
 
   useEffect(() => {
@@ -36,7 +48,7 @@ export default function Home() {
   return (
     <>
       {intro === null && <div className="fixed inset-0 z-[100] bg-black" />}
-      {intro && <Intro onDone={() => setIntro(false)} />}
+      {intro && <Intro speed={introSpeed} onDone={() => setIntro(false)} />}
       <Particles />
       <Nav />
       <main>
