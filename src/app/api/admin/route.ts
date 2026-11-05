@@ -182,7 +182,7 @@ export async function POST(req: Request) {
         await run("UPDATE bookings SET status=?, updated=? WHERE id=?", S("status"), now(), bk.id); await log(`Booking ${bk.code} → ${S("status")}`);
         if (S("status") === "completed" && (await rewardReferral(bk.id))) await log(`Referral reward: +1 session credit for the friend who invited ${bk.code}`);
         if (S("status") === "confirmed" && ["video", "voice"].includes(bk.kind) && !bk.meeting_link)
-          await run("UPDATE bookings SET meeting_link=? WHERE id=?", `https://meet.jit.si/Arcana-${bk.code}${bk.kind === "voice" ? "#config.startWithVideoMuted=true" : ""}`, bk.id);
+          await run("UPDATE bookings SET meeting_link=? WHERE id=?", `https://meet.jit.si/SpillTheCards-${bk.code}${bk.kind === "voice" ? "#config.startWithVideoMuted=true" : ""}`, bk.id);
         if (["cancelled", "rejected"].includes(S("status")) && !["cancelled", "rejected"].includes(bk.status) && bk.used_credit && bk.user_id) await run("UPDATE users SET credits=credits+1 WHERE id=?", bk.user_id);
         if (S("status") === "confirmed" && bk.user_id) { const u = await row<{ email: string }>("SELECT email FROM users WHERE id=?", bk.user_id); void sendMail(u?.email, `Booking ${bk.code} confirmed`, `Your ${bk.service_name} on ${bk.date} at ${bk.time} is confirmed.`); }
         break;

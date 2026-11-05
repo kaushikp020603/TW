@@ -32,7 +32,7 @@ ok("web app manifest has name, icons, start_url and shortcuts", man.name && man.
 for (const icon of ["/icons/icon-192.png", "/icons/icon-512.png", "/icons/maskable-512.png", "/icons/apple-touch-icon.png"]) { r = await anon.get(BASE + icon); if (r.status() !== 200 || r.headers()["content-type"] !== "image/png") ok(`icon ${icon}`, false); }
 ok("all PWA icons are served as PNG", true);
 r = await anon.get(BASE + "/"); t = await r.text();
-ok("home page has title, description, Open Graph and JSON-LD structured data", /<title>THE ARCANA/.test(t) && /name="description"/.test(t) && /property="og:title"/.test(t) && /application\/ld\+json/.test(t) && /ProfessionalService/.test(t) && /rel="manifest"/.test(t));
+ok("home page has title, description, Open Graph and JSON-LD structured data", /<title>Spill the Cards/.test(t) && /name="description"/.test(t) && /property="og:title"/.test(t) && /application\/ld\+json/.test(t) && /ProfessionalService/.test(t) && /rel="manifest"/.test(t));
 r = await anon.get(BASE + "/cards/the-moon"); t = await r.text();
 ok("card page: SEO title, FAQ + Article JSON-LD and real content", r.status() === 200 && /The Moon Tarot Card Meaning/.test(t) && /FAQPage/.test(t) && /"Article"/.test(t) && /reversed/i.test(t) && /canonical/.test(t));
 r = await anon.get(BASE + "/cards/not-a-card"); ok("unknown card page returns 404", r.status() === 404);
@@ -110,7 +110,7 @@ const day = isoDay(6);
   await p.getByRole("button", { name: "4:30 PM" }).click(); await p.locator("#nm").fill("Payer One"); await p.getByRole("button", { name: "Reserve this slot" }).click(); await p.waitForTimeout(1200);
   ok("no payment box until a UPI ID is configured", (await p.getByLabel("Pay with UPI").count()) === 0 && await p.getByText(/Reference [0-9A-F]{8}/).isVisible());
 }
-await adm({ action: "saveBusiness", business: { upiId: "arcana.test@okhdfc", upiName: "THE ARCANA", instagram: "https://instagram.com/arcana", channel: "https://whatsapp.com/channel/abc", aboutName: "Test Reader", aboutBio: "Para one.\n\nPara two.", aboutSpecialties: "Love", aboutExperience: "" } });
+await adm({ action: "saveBusiness", business: { upiId: "arcana.test@okhdfc", upiName: "Spill the Cards", instagram: "https://instagram.com/arcana", channel: "https://whatsapp.com/channel/abc", aboutName: "Test Reader", aboutBio: "Para one.\n\nPara two.", aboutSpecialties: "Love", aboutExperience: "" } });
 {
   const { p } = await mkPage(); await p.goto(BASE); await p.waitForTimeout(1400); await p.evaluate(() => document.getElementById("book").scrollIntoView()); await p.waitForTimeout(700);
   await p.locator("#book fieldset").nth(1).locator("button").nth(6).click(); await p.waitForTimeout(500);
@@ -213,7 +213,7 @@ ok("(setup) booking for tomorrow created", resv.status === 200);
   await p.locator("#reading").getByRole("button", { name: /^One card/ }).click(); await p.locator("#reading").getByRole("button", { name: "Shuffle the deck" }).click(); await p.waitForTimeout(3300);
   await p.getByRole("button", { name: /^Card 4 of 22$/ }).click({ force: true }); await p.waitForTimeout(4500);
   const [dl2] = await Promise.all([p.waitForEvent("download", { timeout: 15000 }), p.getByRole("button", { name: "Share as image" }).last().click()]);
-  ok("a reading can be exported as a share image", dl2.suggestedFilename() === "my-arcana-reading.png");
+  ok("a reading can be exported as a share image", dl2.suggestedFilename() === "my-spill-the-cards-reading.png");
 }
 d = await adminData(); await adm({ action: "analytics", days: 30 }).then((x) => ok("share and reading events reach the analytics", x.body.other.share >= 2 && x.body.funnel[2][1] >= 1));
 

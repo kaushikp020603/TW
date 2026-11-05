@@ -114,7 +114,7 @@ export default function Worlds() {
                   <img src={w.img} alt={`${w.title}: ${w.theme}`} loading="lazy" className="h-full w-full object-cover" style={{ objectPosition: w.pos }} />
                 )}
               </div>
-              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(11,8,18,.8),rgba(11,8,18,.1)_65%),linear-gradient(0deg,rgba(11,8,18,.85),transparent_55%)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(27,18,64,.8),rgba(27,18,64,.1)_65%),linear-gradient(0deg,rgba(27,18,64,.85),transparent_55%)]" />
               <div className="absolute inset-0" style={{ boxShadow: `inset 0 0 160px ${w.accent}22` }} />
             </div>
           ))}

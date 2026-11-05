@@ -10,7 +10,7 @@ export default function PayBox({ amount, code, service }: { amount: number; code
   const [biz, setBiz] = useState<Biz | null>(cache); const [qr, setQr] = useState(""); const [copied, setCopied] = useState(false);
   useEffect(() => { if (cache) return; fetch("/api/site?q=business").then((r) => r.json()).then((b) => { cache = { upiId: b.upiId || "", upiName: b.upiName || SITE.name }; setBiz(cache); }).catch(() => {}); }, []);
   const link = biz?.upiId ? `upi://pay?pa=${encodeURIComponent(biz.upiId)}&pn=${encodeURIComponent(biz.upiName)}&am=${amount}&cu=INR&tn=${encodeURIComponent("ARCANA " + code)}` : "";
-  useEffect(() => { let live = true; if (!link) return; import("qrcode").then((q) => q.toDataURL(link, { margin: 1, width: 240, color: { dark: "#180f29", light: "#f5ecdd" } })).then((u) => live && setQr(u)).catch(() => {}); return () => { live = false; }; }, [link]);
+  useEffect(() => { let live = true; if (!link) return; import("qrcode").then((q) => q.toDataURL(link, { margin: 1, width: 240, color: { dark: "#2a1c5c", light: "#fffaf0" } })).then((u) => live && setQr(u)).catch(() => {}); return () => { live = false; }; }, [link]);
   if (!biz?.upiId || amount <= 0) return null;
   return (
     <div className="mt-6 rounded-2xl border border-gold/30 bg-midnight/90 p-5" aria-label="Pay with UPI">

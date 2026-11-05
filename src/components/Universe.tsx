@@ -49,7 +49,7 @@ export default function Universe() {
 
   return (
     <section id="universe" ref={root} className="relative isolate overflow-hidden px-5 py-28 sm:px-8" aria-labelledby="uni-h">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(60%_40%_at_50%_0%,rgba(57,32,79,.7),transparent),radial-gradient(50%_40%_at_50%_100%,rgba(57,32,79,.5),transparent)]" />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(60%_40%_at_50%_0%,rgba(74,52,150,.7),transparent),radial-gradient(50%_40%_at_50%_100%,rgba(74,52,150,.5),transparent)]" />
       <div className="mx-auto max-w-3xl text-center">
         <p className="eyebrow mb-4">The Major Arcana</p>
         <h2 id="uni-h" className="h-hero text-[clamp(2rem,5.5vw,4.2rem)]">The floating <span className="gold-text italic">tarot universe</span></h2>

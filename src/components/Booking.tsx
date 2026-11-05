@@ -105,7 +105,7 @@ export default function Booking() {
   async function buyPackage(p: Svc) {
     if (!user) { openAuth("register"); return; }
     const r = await fetch("/api/site", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "buy_package", serviceId: p.id }) });
-    if (r.ok) setPkgMsg({ text: `${p.name} ordered (${inr(p.price)}). Send the message on WhatsApp to pay. Your ${p.sessions} credits are added as soon as payment is confirmed.`, wa: waLink(`Hi! I'd like to buy the ${p.name} (${inr(p.price)}) on THE ARCANA. Please share payment details. Account: ${user.email}`) });
+    if (r.ok) setPkgMsg({ text: `${p.name} ordered (${inr(p.price)}). Send the message on WhatsApp to pay. Your ${p.sessions} credits are added as soon as payment is confirmed.`, wa: waLink(`Hi! I'd like to buy the ${p.name} (${inr(p.price)}) on Spill the Cards. Please share payment details. Account: ${user.email}`) });
   }
   const waText = (b: Bk) => `Hi! I'd like to confirm my tarot booking.\n\nRef: ${b.code}\nService: ${b.service_name} (${inr(b.price - b.discount)})\nDate: ${label(b.date)}\nTime: ${b.time}\nName: ${b.name ?? name}\n\nPlease confirm and share payment details. Thank you!`;
 
@@ -228,7 +228,7 @@ export default function Booking() {
               <p className="mt-1 text-sm font-light text-ivory/65">Share your code. When their first reading is completed, a session credit lands in your account.</p></div>
             <div className="flex flex-col items-start gap-2"><code className="rounded-lg border border-gold/40 bg-midnight px-4 py-2 font-display text-2xl tracking-[.2em] text-gold">{acct.refCode}</code>
               <div className="flex gap-2"><button className="btn !py-2" onClick={async () => { await navigator.clipboard?.writeText(`${location.origin}/?ref=${acct.refCode}`).catch(() => {}); }}>Copy link</button>
-                <a className="btn btn-solid !py-2" target="_blank" rel="noopener noreferrer" href={`https://wa.me/?text=${encodeURIComponent(`I love my tarot readings at THE ARCANA ✦ Use my code ${acct.refCode} for ${acct.refPercent ?? 10}% off your first reading: ${location.origin}/?ref=${acct.refCode}`)}`}>Share on WhatsApp</a></div></div>
+                <a className="btn btn-solid !py-2" target="_blank" rel="noopener noreferrer" href={`https://wa.me/?text=${encodeURIComponent(`I love my tarot readings at Spill the Cards ✦ Use my code ${acct.refCode} for ${acct.refPercent ?? 10}% off your first reading: ${location.origin}/?ref=${acct.refCode}`)}`}>Share on WhatsApp</a></div></div>
           </div>
         )}
       </div>

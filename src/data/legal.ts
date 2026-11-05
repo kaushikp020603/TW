@@ -2,7 +2,7 @@ import { SITE } from "@/config/site";
 
 export const DOCS: Record<string, { title: string; body: string[] }> = {
   privacy: { title: "Privacy Policy", body: [
-    "THE ARCANA collects only what you choose to send. Booking details (name, service, date, time, notes) are placed into a WhatsApp message that you send yourself; they are not stored on our servers.",
+    "Spill the Cards collects only what you choose to send. Booking details (name, service, date, time, notes) are placed into a WhatsApp message that you send yourself; they are not stored on our servers.",
     "Your recent booking requests and any question you type into the reading tool are kept only in your own browser (local storage) and can be cleared by clearing your site data.",
     "If the optional AI Oracle is enabled, the messages you type there are sent to the AI provider to generate a reply. Don't share sensitive personal information in the chat.",
     `For questions or deletion requests, message us on WhatsApp at ${SITE.whatsappDisplay}.`] },

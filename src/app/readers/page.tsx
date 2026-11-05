@@ -18,7 +18,7 @@ export default function Readers() {
           <article key={r.id} className="glass frame p-6">
             <div className="flex items-center gap-3"><span className="flex h-12 w-12 items-center justify-center rounded-full bg-gold font-display text-xl text-midnight">{r.name[0]}</span><div><h2 className="font-display text-2xl text-champagne">{r.name}</h2><p className="text-xs text-lavender">Verified{r.main ? " · host reader" : ""}</p></div></div>
             <p className="eyebrow mt-4">{r.specialties}</p><p className="mt-2 text-sm font-light text-ivory/80">{r.bio}</p>
-            <a className="btn btn-solid mt-5" target="_blank" rel="noopener noreferrer" href={r.main ? "/#book" : `https://wa.me/${r.whatsapp}?text=${encodeURIComponent("Hi! I found you on THE ARCANA and would like to book a reading.")}`}>{r.main ? "Book online" : "Message on WhatsApp"}</a>
+            <a className="btn btn-solid mt-5" target="_blank" rel="noopener noreferrer" href={r.main ? "/#book" : `https://wa.me/${r.whatsapp}?text=${encodeURIComponent("Hi! I found you on Spill the Cards and would like to book a reading.")}`}>{r.main ? "Book online" : "Message on WhatsApp"}</a>
           </article>))}
       </div>
       <form onSubmit={apply} className="glass frame mt-14 max-w-xl space-y-3 p-6">

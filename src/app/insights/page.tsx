@@ -51,7 +51,7 @@ function Stars() {
               <h3 className="font-display mt-1 text-2xl text-champagne">{MAJOR_ARCANA[draw.id].name}{draw.reversed ? " (reversed)" : ""}</h3>
               <p className="mt-2 text-sm font-light text-ivory/85">{draw.reversed ? MAJOR_ARCANA[draw.id].reversed : MAJOR_ARCANA[draw.id].upright}</p>
               <p className="mt-2 text-xs text-ivory/55">Combined theme: {z.name} energy ({z.element.toLowerCase()}), life path {lp}, and this card suggest reflecting on {MAJOR_ARCANA[draw.id].keywords.split(" · ")[0]}.</p>
-              <a className="mt-3 inline-block text-xs uppercase tracking-[.2em] text-lavender hover:text-gold" target="_blank" rel="noopener noreferrer" href={waLink(`Hi! I explored my birth chart on THE ARCANA (${z.name}, life path ${lp}) and would like a personal reading.`)}>Book a personal reading</a>
+              <a className="mt-3 inline-block text-xs uppercase tracking-[.2em] text-lavender hover:text-gold" target="_blank" rel="noopener noreferrer" href={waLink(`Hi! I explored my birth chart on Spill the Cards (${z.name}, life path ${lp}) and would like a personal reading.`)}>Book a personal reading</a>
             </div>
           </div>
         </div>
@@ -86,7 +86,7 @@ function Match() {
             {cards.map((c, i) => (<div key={i} className="space-y-3 text-center"><p className="eyebrow">{labels[i]}</p><FlipCard card={MAJOR_ARCANA[c.id]} reversed={c.reversed} flipped={flip} className="mx-auto aspect-[5/8] w-[60%] max-w-[170px]" />
               <div className="glass p-4 text-left"><p className="font-display text-xl text-champagne">{MAJOR_ARCANA[c.id].name}{c.reversed ? " (reversed)" : ""}</p><p className="mt-2 text-sm font-light text-ivory/85">{i === 2 ? MAJOR_ARCANA[c.id].love : c.reversed ? MAJOR_ARCANA[c.id].reversed : MAJOR_ARCANA[c.id].upright}</p></div></div>))}
           </div>
-          <a className="btn btn-solid" target="_blank" rel="noopener noreferrer" href={waLink(`Hi! We tried the compatibility reading on THE ARCANA (${a.name || "me"} & ${b.name || "my partner"}) and would like a personal relationship reading.`)}>Book a relationship reading</a>
+          <a className="btn btn-solid" target="_blank" rel="noopener noreferrer" href={waLink(`Hi! We tried the compatibility reading on Spill the Cards (${a.name || "me"} & ${b.name || "my partner"}) and would like a personal relationship reading.`)}>Book a relationship reading</a>
         </div>
       )}
     </div>

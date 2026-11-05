@@ -7,7 +7,7 @@ import { IMG, SITE, SITE_URL } from "@/config/site";
 import { getBusiness } from "@/lib/business";
 
 export const metadata: Metadata = {
-  title: "About the Reader: How a THE ARCANA Reading Works",
+  title: "About the Reader: How a Spill the Cards Reading Works",
   description: "Meet your tarot reader, learn how a reading works, what to expect from a session and answers to common questions about tarot readings.",
   alternates: { canonical: "/about" },
 };
@@ -31,6 +31,8 @@ async function Inner() {
   ];
   return (
     <PageShell eyebrow="Meet your reader" title={<>Behind every card, <span className="gold-text italic">a story</span></>}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/brand/spill-the-cards.webp" alt="Spill the Cards: a reader and a guest over a tarot spread" className="mb-12 w-full rounded-sm border border-gold/40 shadow-[0_0_60px_rgba(214,179,109,.18)]" />
       <div className="grid items-start gap-10 lg:grid-cols-[320px_1fr]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={IMG.moonReader} alt={`Illustrated portrait of ${name}`} className="frame aspect-[4/5] w-full max-w-sm rounded-sm border border-gold/40 object-cover object-[50%_20%]" />

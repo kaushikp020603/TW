@@ -1,4 +1,5 @@
 "use client";
+import Logo from "@/components/Logo";
 import { useEffect, useState } from "react";
 import { goTo, startBooking } from "@/lib/events";
 import SoundToggle from "./SoundToggle";
@@ -27,9 +28,7 @@ export default function Nav() {
   return (
     <header className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${solid || open ? "glass !border-x-0 !border-t-0 py-3" : "py-5"}`}>
       <div className="mx-auto flex max-w-7xl items-center justify-between px-5 sm:px-8">
-        <button onClick={() => { goTo("top"); setOpen(false); }} className="font-display shrink-0 text-base tracking-[.22em] text-champagne min-[380px]:text-xl min-[380px]:tracking-[.3em] sm:text-2xl sm:tracking-[.35em]" aria-label="THE ARCANA — top">
-          THE ARCANA
-        </button>
+        <button onClick={() => { goTo("top"); setOpen(false); }} className="shrink-0 min-h-11" aria-label="Spill the Cards — top"><Logo className="text-xl sm:text-2xl" /></button>
         <nav className="hidden items-center gap-8 lg:flex" aria-label="Primary">
           {LINKS.map(([id, label]) => (
             <button key={id} onClick={() => goTo(id)} className="text-[.7rem] uppercase tracking-[.25em] text-ivory/80 transition hover:text-gold">{label}</button>

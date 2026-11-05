@@ -2,7 +2,7 @@
 /** Public address of the site (set NEXT_PUBLIC_SITE_URL in production, e.g. https://thearcana.in). */
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
 export const SITE = {
-  name: "THE ARCANA",
+  name: "Spill the Cards",
   tagline: "Some answers aren't found. They're revealed.",
   whatsappNumber: "919027845106", // +91 90278 45106 (digits only, with country code)
   whatsappDisplay: "+91 90278 45106",

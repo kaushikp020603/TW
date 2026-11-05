@@ -25,7 +25,7 @@ export function Dashboard() {
   const status = STATUSES.map((s, i) => ({ label: s, value: d.bookings.filter((b: any) => b.status === s).length, color: ["#f59e0b", "#10b981", "#8b5cf6", "#64748b", "#ef4444"][i] }));
   return (
     <div className="space-y-6">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}><h1 className="font-display text-3xl sm:text-4xl">{greet} <span className="gold-text italic">✦</span></h1><p className="mt-1 text-sm text-ivory/55">Here&apos;s what&apos;s happening with THE ARCANA today.</p></motion.div>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}><h1 className="font-display text-3xl sm:text-4xl">{greet} <span className="gold-text italic">✦</span></h1><p className="mt-1 text-sm text-ivory/55">Here&apos;s what&apos;s happening with Spill the Cards today.</p></motion.div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Stat label="Total bookings" value={d.stats.bookings} icon="bookings" sub={`${d.stats.pending} pending`} delay={0} spark={d.weekly.map((w: any) => w.bookings)} />
         <Stat label="Upcoming" value={d.stats.upcoming} icon="calendar" tone="pink" sub="confirmed or pending" delay={0.07} />

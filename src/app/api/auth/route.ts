@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     await startSession(Number(r.lastInsertRowid));
     if (process.env.RESEND_API_KEY) {
       const t = await makeToken(Number(r.lastInsertRowid), "verify", 3 * 864e5);
-      void sendMail(email, "Confirm your email for THE ARCANA", `Hi ${name}, please confirm your email: ${siteOrigin(req)}/verify?token=${t}`);
+      void sendMail(email, "Confirm your email for Spill the Cards", `Hi ${name}, please confirm your email: ${siteOrigin(req)}/verify?token=${t}`);
     }
     return NextResponse.json({ user: await currentUser() });
   }
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       await run("INSERT INTO reset_requests (user_id,email,created) VALUES (?,?,?)", u.id, email, now());
       if (mailOn) {
         const t = await makeToken(u.id, "reset", 3600e3);
-        void sendMail(email, "Reset your THE ARCANA password", `Use this link within one hour to choose a new password: ${siteOrigin(req)}/reset?token=${t}\n\nIf you did not ask for this, you can ignore this message.`);
+        void sendMail(email, "Reset your Spill the Cards password", `Use this link within one hour to choose a new password: ${siteOrigin(req)}/reset?token=${t}\n\nIf you did not ask for this, you can ignore this message.`);
       }
     }
     return NextResponse.json({ ok: true, emailSent: mailOn });

@@ -5,6 +5,7 @@ import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
 import Worlds from "@/components/Worlds";
 import Universe from "@/components/Universe";
+import { MeetScene, CardsScene, RevelationScene } from "@/components/Scenes";
 import Reading from "@/components/Reading";
 import Booking from "@/components/Booking";
 import Oracle from "@/components/Oracle";
@@ -54,13 +55,13 @@ export default function Home() {
       <main>
         <Hero ready={intro === false} />
         <Chapter {...STORY.prologue} tone="lavender" />
-        <Chapter {...STORY.worlds} />
-        <Worlds />
-        <Chapter {...STORY.deck} tone="lavender" />
+        <MeetScene />
+        <CardsScene />
         <Universe key={"u" + cv} />
         <Chapter {...STORY.draw} />
         <Reading key={"r" + cv} />
-        <Chapter {...STORY.reader} tone="lavender" />
+        <RevelationScene />
+        <Worlds />
         <About />
         <HowItWorks />
         <Chapter {...STORY.invite} />

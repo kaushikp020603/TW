@@ -33,7 +33,7 @@ const EMBLEMS: Record<string, React.ReactNode> = {
 
 export function CardBack({ className = "" }: { className?: string }) {
   return (
-    <div className={`relative h-full w-full ${className}`} style={{ background: "linear-gradient(160deg,#241540,#0b0812 70%)" }}>
+    <div className={`relative h-full w-full ${className}`} style={{ background: "linear-gradient(160deg,#241540,#1b1240 70%)" }}>
       <div className="absolute inset-[6px] rounded-[10px] border border-gold/60" />
       <div className="absolute inset-[12px] rounded-[8px] border border-gold/25" />
       <svg viewBox="0 0 100 140" className="absolute inset-0 h-full w-full" fill="none" stroke={G} strokeWidth="1">
@@ -49,7 +49,7 @@ export function CardBack({ className = "" }: { className?: string }) {
 export function CardFace({ card, reversed = false }: { card: Card; reversed?: boolean }) {
   return (
     <div className="relative flex h-full w-full flex-col items-center justify-between p-[9%] text-center"
-      style={{ background: "linear-gradient(170deg,#2a1747 0%,#180f29 55%,#0b0812 100%)" }}>
+      style={{ background: "linear-gradient(170deg,#2a1747 0%,#2a1c5c 55%,#1b1240 100%)" }}>
       <div className="absolute inset-[6px] rounded-[10px] border border-gold/70" />
       <div className="absolute inset-[11px] rounded-[8px] border border-gold/20" />
       <span className="font-display relative text-[clamp(.7rem,2.6vw,1.05rem)] tracking-[.3em] text-champagne">{card.numeral}</span>

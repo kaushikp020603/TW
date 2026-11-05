@@ -16,7 +16,7 @@ export default function VerifyEmail() {
         {state === "working" && <p className="font-light text-ivory/80">Checking your link…</p>}
         {state === "ok" && <><p className="font-display text-2xl text-champagne">Email confirmed ✦</p><p className="font-light text-ivory/80">Thank you. Your account email is now verified.</p></>}
         {state === "bad" && <p className="font-light text-ivory/80">This confirmation link is invalid or has expired.</p>}
-        <Link href="/" className="btn btn-solid inline-flex">Back to THE ARCANA</Link>
+        <Link href="/" className="btn btn-solid inline-flex">Back to Spill the Cards</Link>
       </div>
     </PageShell>
   );

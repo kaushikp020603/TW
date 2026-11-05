@@ -1,4 +1,5 @@
 "use client";
+import Film from "./Film";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
@@ -152,8 +153,8 @@ export function FinalCTA() {
   return (
     <section ref={ref} className="relative isolate flex min-h-[110svh] items-center justify-center overflow-hidden px-5 text-center" aria-labelledby="fc-h">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={IMG.moonCards} alt="" aria-hidden loading="lazy" className="fc-bg absolute inset-0 -z-20 h-[115%] w-full object-cover opacity-70" />
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,#0b0812,rgba(24,15,41,.5)_30%,rgba(24,15,41,.5)_70%,#0b0812)]" />
+      <Film src="/videos/5.mp4" poster={IMG.moonCards} label="Your story is still unwritten: a tarot card turns to golden light" className="fc-bg absolute inset-0 -z-20 h-[115%] w-full object-cover opacity-80" />
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,#1b1240,rgba(42,28,92,.5)_30%,rgba(42,28,92,.5)_70%,#1b1240)]" />
       <div className="fc-portal absolute left-1/2 top-1/2 -z-10 h-[90vmin] w-[90vmin] -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{ background: "radial-gradient(circle,rgba(234,213,160,.45),rgba(214,179,109,.12) 40%,transparent 68%)", boxShadow: "inset 0 0 0 1px rgba(214,179,109,.2)" }} />
       {[0, 1, 2].map((i) => (
@@ -164,7 +165,7 @@ export function FinalCTA() {
         <p className="mx-auto mt-6 max-w-lg font-light text-ivory/85">Your next chapter is waiting to unfold. Take a moment, trust your intuition and begin your journey.</p>
         <div className="mt-10 flex flex-wrap justify-center gap-4">
           <button className="btn btn-solid" onClick={() => startReading()}>Begin your tarot journey</button>
-          <a className="btn" href={waLink("Hi! I'd like to book a tarot reading on THE ARCANA.")} target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>
+          <a className="btn" href={waLink("Hi! I'd like to book a tarot reading on Spill the Cards.")} target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>
         </div>
       </div>
     </section>
@@ -203,7 +204,8 @@ export function Footer() {
       <WeeklyCard />
       <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-5">
         <div className="md:col-span-1">
-          <p className="font-display text-2xl tracking-[.35em] text-champagne">THE ARCANA</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/mark.webp" alt="Spill the Cards" width={160} height={160} className="h-32 w-32 rounded-full border border-gold/40 object-cover shadow-[0_0_40px_rgba(214,179,109,.25)]" />
           <p className="mt-3 text-sm font-light text-ivory/60">{SITE.tagline}</p>
         </div>
         <div><p className="eyebrow mb-3">Explore</p><L h="/about" t="About the reader" /><L h="#worlds" t="Readings" /><L h="#book" t="Book a session" /><L h="#reading" t="Pick a card" /><L h="/cards" t="Card meanings" /><L h="/gift" t="Gift a reading" /></div>
@@ -219,7 +221,7 @@ export function Footer() {
       </div>
       <p className="mx-auto mt-12 max-w-6xl border-t border-gold/10 pt-6 text-xs font-light leading-relaxed text-ivory/45">
         Tarot readings are for personal reflection and entertainment only. They are not predictions or guarantees and are not a substitute for professional medical, legal or financial advice.
-        © THE ARCANA.
+        © Spill the Cards.
       </p>
     </footer>
   );

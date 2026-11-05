@@ -8,7 +8,7 @@ export async function sendMail(to: string | null | undefined, subject: string, t
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
-      body: JSON.stringify({ from: process.env.MAIL_FROM || "THE ARCANA <onboarding@resend.dev>", to, subject, text }),
+      body: JSON.stringify({ from: process.env.MAIL_FROM || "Spill the Cards <onboarding@resend.dev>", to, subject, text }),
     });
     return r.ok;
   } catch { return false; }

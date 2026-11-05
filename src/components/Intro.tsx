@@ -35,14 +35,14 @@ export default function Intro({ onDone, speed = 1 }: { onDone: () => void; speed
       x: Math.random() * W, y: Math.random() * H, r: (Math.random() * 1.4 + 0.3) * dpr, t: Math.random() * 6,
     }));
 
-    // text particles sampled from rendered "THE ARCANA"
+    // text particles sampled from rendered "Spill the Cards"
     const off = document.createElement("canvas");
     off.width = W; off.height = H;
     const o = off.getContext("2d")!;
     const fs = Math.min(W / (mobile ? 6.2 : 9), 190 * dpr);
     o.fillStyle = "#fff"; o.textAlign = "center"; o.textBaseline = "middle";
     o.font = `600 ${fs}px "Cormorant Garamond", Georgia, serif`;
-    const lines = mobile ? ["THE", "ARCANA"] : ["THE ARCANA"];
+    const lines = mobile ? ["Spill", "the Cards"] : ["Spill the Cards"];
     lines.forEach((t, i) => o.fillText(t, W / 2, H * 0.52 + (i - (lines.length - 1) / 2) * fs * 1.05));
     const img = o.getImageData(0, 0, W, H).data;
     const step = Math.max(3, Math.round((mobile ? 5 : 4) * dpr));

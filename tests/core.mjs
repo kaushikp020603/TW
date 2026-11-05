@@ -63,7 +63,7 @@ ok("guest saved locally", await p.getByText("Saved on this device").isVisible())
 ok("history lists reading", (await p.locator("#hist-h").count()) === 1);
 // PDF popup + share links
 const [pop] = await Promise.all([p.waitForEvent("popup"), p.getByRole("button", { name: "Download PDF" }).click()]);
-await pop.waitForTimeout(500); ok("PDF page opens with reading", /THE ARCANA/.test(await pop.content())); await pop.close();
+await pop.waitForTimeout(500); ok("PDF page opens with reading", /Spill the Cards/.test(await pop.content())); await pop.close();
 const share = await p.getByRole("link", { name: "Share on WhatsApp" }).last().getAttribute("href");
 ok("share link is wa.me text", share.startsWith("https://wa.me/?text="));
 

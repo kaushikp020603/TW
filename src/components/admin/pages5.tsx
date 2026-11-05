@@ -75,7 +75,7 @@ export function MarketingPage() {
   const { d, act } = useAdmin(); const { toast, confirm } = useUi();
   const [nowTs] = useState(() => Date.now());
   const week = Math.floor(nowTs / (7 * 864e5)); const card = MAJOR_ARCANA[(week * 7) % 22];
-  const [text, setText] = useState(`✦ Your weekly card from THE ARCANA: ${card.name} (${card.keywords}).\n\n${card.upright}\n\nReflect: where does "${card.keywords.split(" · ")[0]}" show up for you this week?\n\nDraw your own free card: ${typeof location !== "undefined" ? location.origin : ""}`);
+  const [text, setText] = useState(`✦ Your weekly card from Spill the Cards: ${card.name} (${card.keywords}).\n\n${card.upright}\n\nReflect: where does "${card.keywords.split(" · ")[0]}" show up for you this week?\n\nDraw your own free card: ${typeof location !== "undefined" ? location.origin : ""}`);
   const [subject, setSubject] = useState(`Your weekly card: ${card.name}`);
   const wa = d.leads.filter((l: any) => l.kind === "whatsapp"), em = d.leads.filter((l: any) => l.kind === "email");
   const cols: Col<any>[] = [
@@ -113,7 +113,7 @@ export function BusinessCard() {
     <Card title="Business details" className="lg:col-span-2">
       <p className="mb-4 text-sm text-ivory/55">Shown on the site: the UPI payment box after a booking, footer links, and the About page.</p>
       <div className="grid gap-4 md:grid-cols-2">
-        {f("upiId", "UPI ID (for the payment QR code)", "yourname@bank")}{f("upiName", "Name shown in the UPI app", "THE ARCANA")}
+        {f("upiId", "UPI ID (for the payment QR code)", "yourname@bank")}{f("upiName", "Name shown in the UPI app", "Spill the Cards")}
         {f("instagram", "Instagram link", "https://instagram.com/yourhandle", "url")}{f("channel", "WhatsApp Channel link", "https://whatsapp.com/channel/…", "url")}
         {f("aboutName", "Reader's name (About page)")}{f("aboutSpecialties", "Specialties", "Love · Career · Self-discovery")}
         <div className="md:col-span-2">{f("aboutExperience", "Experience (only what is true; leave blank if unsure)")}</div>
@@ -157,7 +157,7 @@ export function printDaySheet(title: string, list: any[]) {
   const w = window.open("", "_blank"); if (!w) return;
   w.document.write(`<!doctype html><title>${esc(title)}</title><style>body{font-family:Georgia,serif;max-width:900px;margin:30px auto;padding:0 20px;color:#222}h1{letter-spacing:.2em;font-weight:500;border-bottom:1px solid #b89a52;padding-bottom:10px}
     table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px solid #ddd;padding:8px 6px;text-align:left;vertical-align:top}th{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#7a5c1e}.n{color:#777;font-size:12px}</style>
-    <h1>THE ARCANA · ${esc(title)}</h1>${list.length ? `<table><tr><th>Time</th><th>Client</th><th>Service</th><th>Status</th><th>Notes</th></tr>${list.map((b) => `<tr><td><b>${esc(b.time)}</b></td><td>${esc(b.name)}<br><span class="n">${esc(b.phone || "")}</span></td><td>${esc(b.service_name)}<br><span class="n">₹${b.price - b.discount}</span></td><td>${esc(b.status)}</td><td>${esc(b.note || "")}</td></tr>`).join("")}</table>` : "<p>No sessions.</p>"}
+    <h1>Spill the Cards · ${esc(title)}</h1>${list.length ? `<table><tr><th>Time</th><th>Client</th><th>Service</th><th>Status</th><th>Notes</th></tr>${list.map((b) => `<tr><td><b>${esc(b.time)}</b></td><td>${esc(b.name)}<br><span class="n">${esc(b.phone || "")}</span></td><td>${esc(b.service_name)}<br><span class="n">₹${b.price - b.discount}</span></td><td>${esc(b.status)}</td><td>${esc(b.note || "")}</td></tr>`).join("")}</table>` : "<p>No sessions.</p>"}
     <script>setTimeout(()=>window.print(),300)<\/script>`);
   w.document.close();
 }
@@ -208,7 +208,7 @@ export function ResetLinkModal({ userId, onClose }: { userId: number | null; onC
   const u = d.customers.find((c: any) => c.id === userId);
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (userId == null) { setUrl(""); return; } let live = true; act({ action: "resetLink", id: userId }).then((j) => live && setUrl(j.url || "")); return () => { live = false; }; }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
-  const text = `Hi ${u?.name || ""}, here is your one-time link to choose a new password for THE ARCANA (valid for 24 hours): ${url}`;
+  const text = `Hi ${u?.name || ""}, here is your one-time link to choose a new password for Spill the Cards (valid for 24 hours): ${url}`;
   return (
     <Modal open={userId != null} onClose={onClose} title="Password reset link">
       {url ? (<div className="space-y-4">
@@ -254,7 +254,7 @@ export function SummaryEditor({ b }: { b: any }) {
       <div className="mt-2 flex flex-wrap gap-2"><Btn v="primary" size="sm" icon="check" disabled={!dirty} onClick={() => act({ action: "saveSummary", id: b.id, text, cards }, "Summary saved")}>Save summary</Btn>
         {b.summary && !dirty && (<>
           <Btn size="sm" onClick={async () => { await navigator.clipboard?.writeText(url).catch(() => {}); toast("Private link copied"); }}>Copy client link</Btn>
-          <a target="_blank" rel="noreferrer" href={`https://wa.me/${waNumber(b.phone)}?text=${encodeURIComponent(`Hi ${b.name}, your reading summary from THE ARCANA is ready ✦ ${url}`)}`}><Btn size="sm" icon="whatsapp">Send on WhatsApp</Btn></a></>)}</div>
+          <a target="_blank" rel="noreferrer" href={`https://wa.me/${waNumber(b.phone)}?text=${encodeURIComponent(`Hi ${b.name}, your reading summary from Spill the Cards is ready ✦ ${url}`)}`}><Btn size="sm" icon="whatsapp">Send on WhatsApp</Btn></a></>)}</div>
     </div>
   );
 }
@@ -272,7 +272,7 @@ export function WaitlistCard() {
         return (<li key={w.id} className="flex flex-wrap items-center gap-3 rounded-xl bg-white/[.04] p-3 text-sm"><Avatar name={w.name} />
           <span className="min-w-0 flex-1"><span className="block text-ivory">{w.name} <span className="text-ivory/50">· {fshort(w.date)}</span></span><span className="text-xs text-ivory/50">{isMail ? w.contact : "+" + w.contact} · {ago(w.created)}</span></span>
           <Badge tone={n > 0 ? "green" : "gray"}>{n > 0 ? `${n} slot${n > 1 ? "s" : ""} free now` : "still full"}</Badge>
-          <a target="_blank" rel="noreferrer" href={isMail ? `mailto:${w.contact}?subject=${encodeURIComponent("A slot opened at THE ARCANA")}&body=${encodeURIComponent(msg)}` : `https://wa.me/${w.contact}?text=${encodeURIComponent(msg)}`}><Btn size="sm" icon={isMail ? "bell" : "whatsapp"}>Notify</Btn></a>
+          <a target="_blank" rel="noreferrer" href={isMail ? `mailto:${w.contact}?subject=${encodeURIComponent("A slot opened at Spill the Cards")}&body=${encodeURIComponent(msg)}` : `https://wa.me/${w.contact}?text=${encodeURIComponent(msg)}`}><Btn size="sm" icon={isMail ? "bell" : "whatsapp"}>Notify</Btn></a>
           <Btn size="sm" v="danger" icon="trash" aria-label="Remove from waitlist" onClick={() => act({ action: "deleteWaitlist", id: w.id }, "Removed")} /></li>);
       })}</ul>
     </Card>
@@ -287,7 +287,7 @@ export function GiftCardButton() {
     const bytes = crypto.getRandomValues(new Uint8Array(6)); const c = "GIFT-" + [...bytes].map((x) => GIFT_CHARS[x % GIFT_CHARS.length]).join("");
     const j = await act({ action: "saveCoupon", code: c, kind: "flat", value: amount, max_uses: 1 }); if (j?.ok) setCode(c);
   }
-  const text = `Here's your THE ARCANA gift card ✦ Code ${code} is worth ₹${amount} off a personal reading. Enter it in the Coupon box when you book: ${typeof location !== "undefined" ? location.origin : ""}/#book`;
+  const text = `Here's your Spill the Cards gift card ✦ Code ${code} is worth ₹${amount} off a personal reading. Enter it in the Coupon box when you book: ${typeof location !== "undefined" ? location.origin : ""}/#book`;
   return (<>
     <Btn icon="sparkle" onClick={() => { setCode(""); setOpen(true); }}>New gift card</Btn>
     <Modal open={open} onClose={() => setOpen(false)} title="Create a gift card">

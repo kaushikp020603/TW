@@ -83,7 +83,7 @@ function Admin() {
     <nav aria-label="Admin navigation" className="flex h-full flex-col">
       <div className={`flex h-16 shrink-0 items-center gap-3 border-b border-white/[.06] px-4 ${collapsed && !mobile ? "justify-center" : ""}`}>
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 shadow-[0_6px_20px_rgba(168,85,247,.45)]"><Icon n="sparkle" className="h-5 w-5 text-white" /></span>
-        {(!collapsed || mobile) && <div className="leading-tight"><p className="font-display text-lg tracking-[.22em] text-champagne">THE ARCANA</p><p className="text-[.62rem] uppercase tracking-[.3em] text-ivory/35">Admin</p></div>}
+        {(!collapsed || mobile) && <div className="leading-tight"><p className="font-display text-xl italic text-champagne">Spill the Cards</p><p className="text-[.62rem] uppercase tracking-[.3em] text-ivory/35">Admin</p></div>}
       </div>
       <div className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
         {NAV.map((g) => (
@@ -168,7 +168,7 @@ function Login({ onDone }: { onDone: () => void }) {
         onSubmit={async (e) => { e.preventDefault(); setBusy(true); const r = await post({ action: "login", password: pw }); const j = await r.json(); setBusy(false); if (j.ok) onDone(); else { setErr(j.error || "Wrong password"); setShake((s) => s + 1); } }}
         className="relative w-full max-w-sm rounded-3xl border border-white/10 bg-[#120c20]/95 p-8 shadow-[0_30px_100px_rgba(0,0,0,.6)]">
         <motion.span animate={{ rotate: [0, 8, -8, 0] }} transition={{ duration: 5, repeat: Infinity }} className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 shadow-[0_10px_30px_rgba(168,85,247,.5)]"><Icon n="sparkle" className="h-7 w-7 text-white" /></motion.span>
-        <h1 className="mt-5 text-center font-display text-3xl tracking-[.18em] text-champagne">THE ARCANA</h1><p className="mt-1 text-center text-xs uppercase tracking-[.3em] text-ivory/40">Admin portal</p>
+        <h1 className="mt-5 text-center font-display text-4xl italic text-champagne">Spill the Cards</h1><p className="mt-1 text-center text-xs uppercase tracking-[.3em] text-ivory/40">Admin portal</p>
         <label className="mt-8 block"><span className="mb-1.5 block text-xs uppercase tracking-[.14em] text-ivory/45">Password</span><input type="password" autoFocus value={pw} onChange={(e) => { setPw(e.target.value); setErr(""); }} className={field} autoComplete="current-password" /></label>
         <AnimatePresence>{err && <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0 }} role="alert" className="mt-2 text-sm text-red-300">{err}</motion.p>}</AnimatePresence>
         <Btn v="primary" className="mt-6 w-full !py-3" disabled={busy || !pw}>{busy ? "Checking…" : "Enter"}</Btn>

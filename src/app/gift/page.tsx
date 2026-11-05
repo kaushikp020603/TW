@@ -5,7 +5,7 @@ import { SITE, waLink } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "Gift a Tarot Reading: Gift Cards",
-  description: "Give someone a personal tarot reading. Buy a THE ARCANA gift card on WhatsApp and they redeem it when booking.",
+  description: "Give someone a personal tarot reading. Buy a Spill the Cards gift card on WhatsApp and they redeem it when booking.",
   alternates: { canonical: "/gift" },
 };
 
@@ -16,7 +16,7 @@ export default function Gift() {
     <PageShell eyebrow="Give a moment of clarity" title={<>Gift a <span className="gold-text italic">reading</span></>} intro="A thoughtful gift for a birthday, a new beginning, or just because. Choose an amount, pay by UPI on WhatsApp, and we send you a personal gift code to pass on.">
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {AMOUNTS.map((a) => (
-          <a key={a} target="_blank" rel="noopener noreferrer" href={waLink(`Hi! I'd like to buy a THE ARCANA gift card worth ₹${a}. Please share payment details.`)} className="glass frame block p-6 text-center transition hover:-translate-y-1">
+          <a key={a} target="_blank" rel="noopener noreferrer" href={waLink(`Hi! I'd like to buy a Spill the Cards gift card worth ₹${a}. Please share payment details.`)} className="glass frame block p-6 text-center transition hover:-translate-y-1">
             <p className="font-display text-5xl text-gold">₹{a}</p>
             <p className="mt-2 text-xs uppercase tracking-[.2em] text-ivory/60">Gift card</p>
             <span className="btn btn-solid mt-5 w-full">Buy on WhatsApp</span>

@@ -86,7 +86,7 @@ await adm({ action: "setPayment", id: pay.id, status: "refunded" }); r = await u
 r = await u("/api/bookings", { serviceId: "video30", date, time: "4:30 PM", name: "Priya" }); ok("video session booked", r.status === 200);
 const vb = r.body.booking.code; d = await adminData(); const vrow = d.bookings.find((x) => x.code === vb);
 await adm({ action: "setStatus", id: vrow.id, status: "confirmed" }); r = await u("/api/bookings"); const vmine = r.body.bookings.find((x) => x.code === vb);
-ok("confirmed video booking gets meeting link", /meet\.jit\.si\/Arcana-/.test(vmine.meeting_link || ""), vmine.meeting_link);
+ok("confirmed video booking gets meeting link", /meet\.jit\.si\/SpillTheCards-/.test(vmine.meeting_link || ""), vmine.meeting_link);
 r = await u("/api/bookings", { serviceId: "voice30", date, time: "6:00 PM", name: "Priya" }); d = await adminData();
 await adm({ action: "setStatus", id: d.bookings.find((x) => x.code === r.body.booking.code).id, status: "confirmed" }); r = await u("/api/bookings");
 ok("voice session link is audio-only", r.body.bookings.some((x) => x.kind === "voice" && /startWithVideoMuted/.test(x.meeting_link || "")));

@@ -2,7 +2,7 @@ import "server-only";
 import { row, run } from "./db";
 
 export type Business = { upiId: string; upiName: string; instagram: string; channel: string; aboutName: string; aboutBio: string; aboutSpecialties: string; aboutExperience: string };
-export const BUSINESS_DEFAULT: Business = { upiId: "", upiName: "THE ARCANA", instagram: "", channel: "", aboutName: "", aboutBio: "", aboutSpecialties: "", aboutExperience: "" };
+export const BUSINESS_DEFAULT: Business = { upiId: "", upiName: "Spill the Cards", instagram: "", channel: "", aboutName: "", aboutBio: "", aboutSpecialties: "", aboutExperience: "" };
 const url = (v: unknown) => { const s = String(v ?? "").trim().slice(0, 300); return /^https?:\/\//i.test(s) ? s : ""; };
 
 export function sanitizeBusiness(raw: unknown): Business {

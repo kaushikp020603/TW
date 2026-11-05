@@ -13,7 +13,7 @@ const rr = (c: CanvasRenderingContext2D, x: number, y: number, w: number, h: num
 /** Draws a 1080×1920 story-format image of one to three cards. */
 export async function makeShareImage(title: string, items: Item[], note?: string): Promise<Blob> {
   const W = 1080, H = 1920; const cv = document.createElement("canvas"); cv.width = W; cv.height = H; const c = cv.getContext("2d")!;
-  const bg = c.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, "#241540"); bg.addColorStop(0.55, "#120a22"); bg.addColorStop(1, "#0b0812"); c.fillStyle = bg; c.fillRect(0, 0, W, H);
+  const bg = c.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, "#241540"); bg.addColorStop(0.55, "#120a22"); bg.addColorStop(1, "#1b1240"); c.fillStyle = bg; c.fillRect(0, 0, W, H);
   const glow = c.createRadialGradient(W / 2, 520, 20, W / 2, 520, 700); glow.addColorStop(0, "rgba(214,179,109,.22)"); glow.addColorStop(1, "rgba(214,179,109,0)"); c.fillStyle = glow; c.fillRect(0, 0, W, H);
   for (let i = 0; i < 90; i++) { c.fillStyle = `rgba(245,236,221,${Math.random() * 0.6})`; c.fillRect(Math.random() * W, Math.random() * H, 2, 2); }
   c.textAlign = "center"; c.fillStyle = "#ead5a0"; c.font = "600 54px Georgia, serif"; c.fillText("T H E   A R C A N A", W / 2, 130);
@@ -21,7 +21,7 @@ export async function makeShareImage(title: string, items: Item[], note?: string
   const n = items.length; const cw = n === 1 ? 560 : n === 2 ? 420 : 320, ch = cw * 1.6; const gap = 36; const total = n * cw + (n - 1) * gap; const y0 = n === 1 ? 330 : 420;
   for (let i = 0; i < n; i++) {
     const { card, reversed, label } = items[i]; const x = (W - total) / 2 + i * (cw + gap);
-    const g = c.createLinearGradient(x, y0, x, y0 + ch); g.addColorStop(0, "#2a1747"); g.addColorStop(1, "#0b0812");
+    const g = c.createLinearGradient(x, y0, x, y0 + ch); g.addColorStop(0, "#2a1747"); g.addColorStop(1, "#1b1240");
     rr(c, x, y0, cw, ch, 26); c.fillStyle = g; c.fill(); c.lineWidth = 4; c.strokeStyle = "#d6b36d"; c.stroke();
     rr(c, x + 16, y0 + 16, cw - 32, ch - 32, 18); c.lineWidth = 1.5; c.strokeStyle = "rgba(214,179,109,.35)"; c.stroke();
     c.fillStyle = "#ead5a0"; c.font = `${Math.round(cw * 0.07)}px Georgia, serif`; c.fillText(card.numeral, x + cw / 2, y0 + cw * 0.17);
@@ -31,9 +31,9 @@ export async function makeShareImage(title: string, items: Item[], note?: string
     if (reversed) { c.fillStyle = "#c9b6df"; c.font = "italic 28px Georgia, serif"; c.fillText("reversed", x + cw / 2, y0 + ch + (label ? 104 : 60)); }
   }
   const first = items[0]; let y = y0 + ch + (items.some((i) => i.label) ? 190 : 150);
-  c.fillStyle = "#f5ecdd"; c.font = "600 64px Georgia, serif"; if (n === 1) { c.fillText(first.card.name, W / 2, y); y += 70; }
+  c.fillStyle = "#fffaf0"; c.font = "600 64px Georgia, serif"; if (n === 1) { c.fillText(first.card.name, W / 2, y); y += 70; }
   c.fillStyle = "#d6b36d"; c.font = "italic 38px Georgia, serif"; if (n === 1) { c.fillText(first.card.keywords, W / 2, y); y += 90; }
-  if (note) { c.fillStyle = "#f5ecdd"; c.font = "34px Georgia, serif"; const words = note.split(" "); let line = ""; for (const w of words) { const t = line ? line + " " + w : w; if (c.measureText(t).width > 820) { c.fillText(line, W / 2, y); y += 52; line = w; } else line = t; } if (line) c.fillText(line, W / 2, y); }
+  if (note) { c.fillStyle = "#fffaf0"; c.font = "34px Georgia, serif"; const words = note.split(" "); let line = ""; for (const w of words) { const t = line ? line + " " + w : w; if (c.measureText(t).width > 820) { c.fillText(line, W / 2, y); y += 52; line = w; } else line = t; } if (line) c.fillText(line, W / 2, y); }
   c.fillStyle = "#c9b6df"; c.font = "30px Georgia, serif"; c.fillText("For reflection and entertainment", W / 2, H - 150);
   c.fillStyle = "#ead5a0"; c.font = "600 36px Georgia, serif"; c.fillText(location.host, W / 2, H - 90);
   return new Promise((res) => cv.toBlob((b) => res(b!), "image/png"));

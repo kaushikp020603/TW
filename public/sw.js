@@ -1,4 +1,4 @@
-/* THE ARCANA service worker: offline fallback + fast repeat visits.
+/* Spill the Cards service worker: offline fallback + fast repeat visits.
    - Pages: network first; if offline, show the last copy you visited, else /offline.
    - Static assets (JS/CSS/fonts/images/icons): cache first, refreshed in the background.
    - Never touches /api or /admin, so bookings and the admin portal always use live data. */

@@ -23,7 +23,7 @@ function readingText(spread: SpreadKey, category: Category, question: string, dr
   const pos = SPREADS[spread].positions;
   const lines = drawn.map((d, i) => `${pos[i]}: ${d.card.name}${d.reversed ? " (reversed)" : ""}`);
   const yn = spread === "yesno" ? `\nSymbolic lean: ${yesNo(drawn[0])}` : "";
-  return `✦ THE ARCANA · ${SPREADS[spread].label} (${category})\n${question ? `Question: ${question}\n` : ""}${lines.join("\n")}${yn}\n\nFor reflection & entertainment only.`;
+  return `✦ Spill the Cards · ${SPREADS[spread].label} (${category})\n${question ? `Question: ${question}\n` : ""}${lines.join("\n")}${yn}\n\nFor reflection & entertainment only.`;
 }
 
 function printReading(spread: SpreadKey, category: Category, question: string, drawn: Drawn[], notes: string[]) {
@@ -31,12 +31,12 @@ function printReading(spread: SpreadKey, category: Category, question: string, d
   const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
   const w = window.open("", "_blank");
   if (!w) return;
-  w.document.write(`<!doctype html><title>My THE ARCANA reading</title><style>
+  w.document.write(`<!doctype html><title>My Spill the Cards reading</title><style>
   body{font-family:Georgia,serif;max-width:720px;margin:40px auto;padding:0 24px;color:#222}
   h1{letter-spacing:.3em;font-weight:500;text-align:center;border-bottom:1px solid #b89a52;padding-bottom:14px}
   h2{font-size:18px;margin:22px 0 2px;color:#5b3a86} .k{color:#8a7440;font-size:12px;letter-spacing:.15em;text-transform:uppercase}
   p{line-height:1.6} .note{margin-top:30px;font-size:12px;color:#777;border-top:1px solid #ddd;padding-top:12px}</style>
-  <h1>THE ARCANA</h1><p><b>${esc(SPREADS[spread].label)}</b> · ${esc(category)} · ${new Date().toLocaleDateString("en-IN", { dateStyle: "long" })}</p>
+  <h1>Spill the Cards</h1><p><b>${esc(SPREADS[spread].label)}</b> · ${esc(category)} · ${new Date().toLocaleDateString("en-IN", { dateStyle: "long" })}</p>
   ${question ? `<p><i>“${esc(question)}”</i></p>` : ""}
   ${drawn.map((d, i) => `<h2>${esc(pos[i])}: ${esc(d.card.name)}${d.reversed ? " (reversed)" : ""}</h2><div class="k">${esc(d.card.keywords)}</div><p>${esc(d.reversed ? d.card.reversed : d.card.upright)}</p>`).join("")}
   <h2>Reflection</h2>${notes.map((n) => `<p>${esc(n)}</p>`).join("")}
@@ -72,9 +72,9 @@ function DailyCard() {
           <>
             <p className="mt-3 text-sm font-light leading-relaxed text-ivory/85">{d.reversed ? card.reversed : card.upright}</p>
             <p className="mt-2 text-xs text-ivory/50">Come back tomorrow for a new card.</p>
-            <button className="mr-5 mt-3 inline-block text-xs uppercase tracking-[.2em] text-lavender hover:text-gold" onClick={async () => { const blob = await makeShareImage("My card of the day", [{ card, reversed: d.reversed }]); track("share"); await shareOrDownload(blob, "my-card-of-the-day.png", `My card of the day on THE ARCANA: ${card.name}`); }}>Share as image</button>
+            <button className="mr-5 mt-3 inline-block text-xs uppercase tracking-[.2em] text-lavender hover:text-gold" onClick={async () => { const blob = await makeShareImage("My card of the day", [{ card, reversed: d.reversed }]); track("share"); await shareOrDownload(blob, "my-card-of-the-day.png", `My card of the day on Spill the Cards: ${card.name}`); }}>Share as image</button>
             <Link className="mr-5 mt-3 inline-block text-xs uppercase tracking-[.2em] text-lavender hover:text-gold" href="/journey">Daily reminder</Link><a className="mt-3 inline-block text-xs uppercase tracking-[.2em] text-lavender hover:text-gold" target="_blank" rel="noopener noreferrer"
-              href={`https://wa.me/?text=${encodeURIComponent(`My card of the day on THE ARCANA: ${card.name}${d.reversed ? " (reversed)" : ""} — ${card.keywords}`)}`}>Share on WhatsApp</a>
+              href={`https://wa.me/?text=${encodeURIComponent(`My card of the day on Spill the Cards: ${card.name}${d.reversed ? " (reversed)" : ""} — ${card.keywords}`)}`}>Share on WhatsApp</a>
           </>
         ) : (
           <>
@@ -144,7 +144,7 @@ export default function Reading() {
     const pick = count <= 3 ? drawn.map((d, i) => ({ card: d.card, reversed: d.reversed, label: count > 1 ? pos[i] : undefined })) : [{ card: drawn[drawn.length - 1].card, reversed: drawn[drawn.length - 1].reversed, label: "The outcome" }];
     const note = spreadKey === "yesno" ? `Symbolic answer: ${yesNo(drawn[0])}` : question || undefined;
     const blob = await makeShareImage(`${SPREADS[spreadKey].label} reading`, pick, note);
-    track("share"); await shareOrDownload(blob, "my-arcana-reading.png", "My reading on THE ARCANA");
+    track("share"); await shareOrDownload(blob, "my-spill-the-cards-reading.png", "My reading on Spill the Cards");
   }
 
   async function save() {
@@ -163,7 +163,7 @@ export default function Reading() {
     <section id="reading" className="relative isolate overflow-hidden px-5 py-28 sm:px-8" aria-labelledby="read-h">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={IMG.chamber} alt="" aria-hidden loading="lazy" className="absolute inset-0 -z-20 h-full w-full object-cover opacity-45" />
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,#0b0812,rgba(11,8,18,.55)_20%,rgba(11,8,18,.7)_80%,#0b0812)]" />
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,#1b1240,rgba(27,18,64,.55)_20%,rgba(27,18,64,.7)_80%,#1b1240)]" />
       <div className="mx-auto max-w-5xl text-center">
         <p className="eyebrow mb-4">The tarot chamber</p>
         <h2 id="read-h" className="h-hero text-[clamp(2rem,5.5vw,4.2rem)]">The cards are waiting. <span className="gold-text italic">Are you ready?</span></h2>
@@ -258,7 +258,7 @@ export default function Reading() {
                       {notes.map((n, i) => <p key={i} className="font-light leading-relaxed text-ivory/90">{n}</p>)}
                     </div>
                     <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-                      <a className="btn btn-solid" href={waLink(`Hi! I pulled cards on THE ARCANA and would like to book a personal reading.\n\n${readingText(spreadKey, category, question, drawn)}`)} target="_blank" rel="noopener noreferrer">Book a personal reading</a>
+                      <a className="btn btn-solid" href={waLink(`Hi! I pulled cards on Spill the Cards and would like to book a personal reading.\n\n${readingText(spreadKey, category, question, drawn)}`)} target="_blank" rel="noopener noreferrer">Book a personal reading</a>
                       <button className="btn" onClick={() => startBooking()}>Choose a time slot</button>
                     </div>
                     <div className="mt-4 flex flex-wrap items-center justify-center gap-5 text-xs uppercase tracking-[.18em]">

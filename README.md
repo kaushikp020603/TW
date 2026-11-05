@@ -1,4 +1,4 @@
-# THE ARCANA — cinematic tarot site
+# Spill the Cards — cinematic tarot site
 
 Next.js 16 · React 19 · TypeScript · Tailwind 4 · GSAP + ScrollTrigger · Framer Motion.
 No payment gateway: data lives in Turso (SQLite-compatible, free tier); bookings open **WhatsApp (+91 90278 45106)** with the request pre-written. Free to host on Vercel.

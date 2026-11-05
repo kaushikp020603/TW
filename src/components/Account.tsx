@@ -46,7 +46,7 @@ export function AuthModal() {
                 {sent.emailSent
                   ? <p className="text-sm font-light text-ivory/85">If an account exists for <b>{f.email}</b>, we&apos;ve emailed a link to choose a new password. It works for one hour.</p>
                   : <><p className="text-sm font-light text-ivory/85">Request noted. For your security the reader will send you a one-time reset link on WhatsApp. You can speed it up by messaging now.</p>
-                    <a className="btn btn-solid w-full" target="_blank" rel="noopener noreferrer" href={waLink(`Hi! I forgot my password for THE ARCANA. The email on my account is ${f.email}. Please send me a reset link.`)}>Message the reader on WhatsApp</a></>}
+                    <a className="btn btn-solid w-full" target="_blank" rel="noopener noreferrer" href={waLink(`Hi! I forgot my password for Spill the Cards. The email on my account is ${f.email}. Please send me a reset link.`)}>Message the reader on WhatsApp</a></>}
                 <button type="button" className="block w-full text-center text-xs uppercase tracking-[.2em] text-lavender hover:text-gold" onClick={() => { setSent(null); setMode("login"); }}>Back to sign in</button>
               </div>
             ) : (<>
