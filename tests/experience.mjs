@@ -38,7 +38,7 @@ const mk = async (vw) => { const ctx = await b.newContext({ viewport: vw }); con
 const { p } = await mk({ width: 1440, height: 1000 });
 await p.goto(BASE + "/admin"); await p.waitForTimeout(700); await p.getByLabel("Password").fill(ADMIN); await p.getByRole("button", { name: "Enter" }).click(); await p.waitForTimeout(1500);
 await p.getByRole("navigation", { name: "Admin navigation" }).first().getByRole("button", { name: "Music" }).click(); await p.waitForTimeout(900);
-ok("Music page opens from the drawer", await p.getByRole("heading", { name: "Music" }).isVisible());
+ok("Music page opens from the drawer", await p.getByRole("heading", { name: "Music", exact: true }).first().isVisible());
 await p.screenshot({ path: `${OUT}/ex-admin.png` });
 await p.getByRole("radio", { name: /Temple bells/ }).click(); await p.waitForTimeout(400);
 ok("selecting a track shows Save changes", await p.getByRole("button", { name: "Save changes" }).isVisible());

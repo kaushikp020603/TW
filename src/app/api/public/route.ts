@@ -6,7 +6,7 @@ import { currentUser } from "@/lib/auth";
 export async function GET(req: Request) {
   const u = new URL(req.url); const q = u.searchParams.get("q");
   if (q === "services") return NextResponse.json({ services: await rows("SELECT id,name,price,mins,blurb,kind,sessions FROM services WHERE active=1 ORDER BY sort") });
-  if (q === "products") return NextResponse.json({ products: await rows("SELECT id,name,kind,price,blurb,details,art,stock FROM products WHERE active=1 ORDER BY sort,name") });
+  if (q === "products") return NextResponse.json({ products: await rows("SELECT id,name,kind,price,blurb,details,image,stock FROM products WHERE active=1 ORDER BY sort,name") });
   if (q === "reviews") {
     const place = ["home", "services", "shop", "all"].includes(u.searchParams.get("place") || "") ? u.searchParams.get("place")! : "home";
     return NextResponse.json({ reviews: await rows("SELECT id,name,city,category,text,rating FROM reviews WHERE approved=1 AND (place='all' OR place=?) ORDER BY featured DESC, sort, created DESC LIMIT 12", place) });

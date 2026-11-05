@@ -49,19 +49,13 @@ export function HowItWorks() {
   );
 }
 
-// Shown only until genuine, approved reviews exist. Clearly marked as placeholders.
-const PLACEHOLDERS = [
-  { name: "Placeholder · Anonymous", category: "Love reading", text: "Sample review text. Replace with a genuine client review shared with permission." },
-  { name: "Placeholder · Anonymous", category: "Career reading", text: "Sample review text. Replace with a genuine client review shared with permission." },
-  { name: "Placeholder · Anonymous", category: "General guidance", text: "Sample review text. Replace with a genuine client review shared with permission." },
-];
 type Review = { name: string; category: string; text: string; city?: string; rating?: number };
 export function Testimonials() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [f, setF] = useState({ name: "", category: "General guidance", text: "", permission: false });
   const [msg, setMsg] = useState("");
   useEffect(() => { fetch("/api/public?q=reviews").then((r) => r.json()).then((j) => setReviews(j.reviews || [])).catch(() => {}); }, []);
-  const list: Review[] = reviews.length ? reviews : PLACEHOLDERS;
+  const list: Review[] = reviews;
   async function send(e: React.FormEvent) {
     e.preventDefault();
     const r = await fetch("/api/reviews", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(f) });
@@ -85,7 +79,7 @@ export function Testimonials() {
             </motion.figure>
           ))}
         </div>
-        {!reviews.length && <p className="mt-6 text-center text-xs text-ivory/40">Development placeholders. They are replaced automatically once genuine reviews are approved.</p>}
+        {!reviews.length && <p className="mx-auto mt-10 max-w-md text-center font-light text-ivory/70">Reviews from our clients will appear here. Had a reading? Be the first to share your experience below.</p>}
         <form onSubmit={send} className="glass mx-auto mt-14 max-w-xl space-y-3 p-6 text-left">
           <p className="eyebrow">Had a reading? Share your experience</p>
           <input aria-label="Your name (optional)" placeholder="Your name (or leave blank to stay anonymous)" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} className="w-full border border-gold/30 bg-midnight/95 p-3 text-sm font-light" />

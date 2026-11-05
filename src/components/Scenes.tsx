@@ -2,9 +2,8 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Film from "./Film";
-import { CardFan } from "./GuidanceCard";
 import { startBooking } from "@/lib/events";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useUser } from "@/lib/useUser";
 
 const rise = { hidden: { opacity: 0, y: 36 }, show: { opacity: 1, y: 0, transition: { duration: 0.9, ease: [0.2, 0.8, 0.2, 1] as const } } };
@@ -75,18 +74,23 @@ export function RevelationScene() {
   );
 }
 
-/** Teaser for the card shop, between the booking form and the testimonials. */
+/** Teaser for the card shop. Shows the first uploaded designs and hides itself while the shop is empty. */
 export function ShopScene() {
+  const [items, setItems] = useState<{ id: string; name: string; image?: number | null }[]>([]);
+  useEffect(() => { fetch("/api/public?q=products").then((r) => r.json()).then((d) => setItems((d.products || []).slice(0, 3))).catch(() => {}); }, []);
+  if (!items.length) return null;
   return (
     <section id="shop" className="relative overflow-hidden px-5 py-24 sm:px-8 sm:py-32" aria-labelledby="shop-h">
       <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-12%" }} transition={{ staggerChildren: 0.15 }} className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1fr_1fr]">
         <div>
           <motion.p variants={rise} className="eyebrow">Chapter VI · Keepsakes</motion.p>
           <motion.h2 variants={rise} id="shop-h" className="h-hero mt-3 text-[clamp(2rem,4.6vw,3.6rem)]">Guidance you can <span className="gold-text italic">hold in your hands.</span></motion.h2>
-          <motion.p variants={rise} className="mt-5 max-w-md text-lg font-light leading-relaxed text-ivory/85">Our own gold-foil guidance cards, pocket tarot and cards designed just for you or someone you love. Order on WhatsApp, we deliver across India.</motion.p>
+          <motion.p variants={rise} className="mt-5 max-w-md text-lg font-light leading-relaxed text-ivory/85">Our own card designs, made with care. Order on WhatsApp, we deliver across India.</motion.p>
           <motion.div variants={rise} className="mt-8 flex flex-wrap gap-3"><Link href="/shop" className="btn btn-solid">Visit the card shop</Link></motion.div>
         </div>
-        <motion.div variants={rise}><CardFan art="moon" className="max-w-[360px]" /></motion.div>
+        <motion.ul variants={rise} className="grid grid-cols-3 gap-3">
+          {items.map((p) => <li key={p.id} className="tilt aspect-[4/5] overflow-hidden rounded-xl border border-gold/50 bg-[#2a1c5c] shadow-[0_10px_40px_rgba(10,4,40,.5)]">{p.image ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={`/api/media/${p.image}`} alt={p.name} loading="lazy" className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center text-3xl text-gold/50">✦</span>}</li>)}
+        </motion.ul>
       </motion.div>
     </section>
   );

@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   const name = String(b.name || "").trim().slice(0, 60);
   if (name.length < 2) return NextResponse.json({ error: "Please enter your name." }, { status: 400 });
   const note = String(b.note || "").trim().slice(0, 300);
-  if (p.kind === "custom" && !note) return NextResponse.json({ error: "Please describe the card you would like." }, { status: 400 });
+  if (/custom/i.test(p.kind) && !note) return NextResponse.json({ error: "Please describe the card you would like." }, { status: 400 });
   const qty = Math.min(10, Math.max(1, Math.floor(Number(b.qty) || 1)));
   if (p.stock !== null && p.stock !== undefined) {
     if (p.stock < qty) return NextResponse.json({ error: p.stock <= 0 ? "Sorry, this is sold out right now." : `Only ${p.stock} left. Please lower the quantity.` }, { status: 409 });

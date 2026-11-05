@@ -217,9 +217,9 @@ export async function POST(req: Request) {
           S("id", 30).replace(/[^a-z0-9_-]/gi, "") || "svc" + now(), S("name", 80), Math.max(0, N("price")), S("mins", 40), S("blurb", 160), b.active ? 1 : 0, N("sort"), ["reading", "video", "voice", "package"].includes(S("kind")) ? S("kind") : "reading", N("sessions")); break;
       case "listShop": return NextResponse.json({ ok: true, products: await rows("SELECT * FROM products ORDER BY sort,name"), orders: await rows("SELECT * FROM orders ORDER BY created DESC LIMIT 200") });
       case "saveProduct":
-        await run("INSERT INTO products (id,name,kind,price,blurb,details,art,active,sort,stock) VALUES (?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET stock=excluded.stock, name=excluded.name, kind=excluded.kind, price=excluded.price, blurb=excluded.blurb, details=excluded.details, art=excluded.art, active=excluded.active, sort=excluded.sort",
-          S("id", 40).replace(/[^a-z0-9_-]/gi, "") || "item-" + now(), S("name", 80), Math.max(0, N("price")), ["guidance", "deck", "custom", "digital", "print"].includes(S("kind")) ? S("kind") : "guidance", S("blurb", 200), S("details", 400),
-          ["moon", "sun", "star", "lotus", "heart", "eye", "crown", "key"].includes(S("art")) ? S("art") : "moon", b.active === false || b.active === 0 ? 0 : 1, N("sort"), b.stock === "" || b.stock === null || b.stock === undefined ? null : Math.max(0, N("stock"))); break;
+        await run("INSERT INTO products (id,name,kind,price,blurb,details,art,active,sort,stock,image) VALUES (?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET image=excluded.image, stock=excluded.stock, name=excluded.name, kind=excluded.kind, price=excluded.price, blurb=excluded.blurb, details=excluded.details, art=excluded.art, active=excluded.active, sort=excluded.sort",
+          S("id", 40).replace(/[^a-z0-9_-]/gi, "") || "item-" + now(), S("name", 80), S("kind", 30) || "Cards", Math.max(0, N("price")), S("blurb", 200), S("details", 400),
+          "moon", b.active === false || b.active === 0 ? 0 : 1, N("sort"), b.stock === "" || b.stock === null || b.stock === undefined ? null : Math.max(0, N("stock")), N("image") || null); break;
       case "deleteProduct": await run("DELETE FROM products WHERE id=?", S("id")); break;
       case "setOrderStatus": await run("UPDATE orders SET status=? WHERE id=?", ["new", "paid", "shipped", "sent", "done", "cancelled"].includes(S("status")) ? S("status") : "new", N("id")); break;
       case "saveCoupon":

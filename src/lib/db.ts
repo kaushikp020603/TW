@@ -1,4 +1,3 @@
-import { SEED_PRODUCTS } from "@/data/shop";
 import "server-only";
 import { createClient, type Client } from "@libsql/client";
 import fs from "node:fs";
@@ -39,6 +38,9 @@ const SCHEMA = `
   CREATE TABLE IF NOT EXISTS reset_requests (id INTEGER PRIMARY KEY, user_id INTEGER, email TEXT, created INTEGER NOT NULL, handled INTEGER DEFAULT 0);
   CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY, ts INTEGER NOT NULL, type TEXT NOT NULL, path TEXT, ref TEXT, vid TEXT);
   CREATE INDEX IF NOT EXISTS idx_events_ts ON events (ts, type);
+  CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT, price INTEGER NOT NULL, blurb TEXT, details TEXT, art TEXT DEFAULT 'moon', active INTEGER DEFAULT 1, sort INTEGER DEFAULT 0, stock INTEGER, image INTEGER);
+  CREATE TABLE IF NOT EXISTS orders (id INTEGER PRIMARY KEY, code TEXT UNIQUE, product_id TEXT, product_name TEXT, qty INTEGER, total INTEGER, name TEXT, phone TEXT, note TEXT, status TEXT DEFAULT 'new', created INTEGER NOT NULL);
+  CREATE TABLE IF NOT EXISTS consents (id INTEGER PRIMARY KEY, ts INTEGER NOT NULL, vid TEXT, choice TEXT NOT NULL);
   CREATE TABLE IF NOT EXISTS errors (id INTEGER PRIMARY KEY, ts INTEGER NOT NULL, source TEXT, message TEXT, path TEXT, ua TEXT);
   CREATE TABLE IF NOT EXISTS backups (id INTEGER PRIMARY KEY, created INTEGER NOT NULL, kind TEXT, size INTEGER, data TEXT NOT NULL);
   CREATE TABLE IF NOT EXISTS trash (id INTEGER PRIMARY KEY, tbl TEXT NOT NULL, label TEXT, payload TEXT NOT NULL, deleted INTEGER NOT NULL);
@@ -52,11 +54,11 @@ const SCHEMA = `
   CREATE TABLE IF NOT EXISTS readers (id INTEGER PRIMARY KEY, name TEXT NOT NULL, bio TEXT, specialties TEXT, whatsapp TEXT NOT NULL, email TEXT, verified INTEGER DEFAULT 0, main INTEGER DEFAULT 0, created INTEGER NOT NULL);
 `;
 const MIGRATIONS = [
+  "ALTER TABLE products ADD COLUMN image INTEGER",
+  "DELETE FROM products WHERE id IN ('guidance-deck','pocket-tarot','affirmation-12','custom-card','digital-pack')",
   "ALTER TABLE products ADD COLUMN stock INTEGER",
   "ALTER TABLE reviews ADD COLUMN rating INTEGER DEFAULT 5", "ALTER TABLE reviews ADD COLUMN city TEXT", "ALTER TABLE reviews ADD COLUMN place TEXT DEFAULT 'all'",
   "ALTER TABLE reviews ADD COLUMN featured INTEGER DEFAULT 0", "ALTER TABLE reviews ADD COLUMN sort INTEGER DEFAULT 0",
-  "CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT DEFAULT 'guidance', price INTEGER NOT NULL, blurb TEXT, details TEXT, art TEXT DEFAULT 'moon', active INTEGER DEFAULT 1, sort INTEGER DEFAULT 0)",
-  "CREATE TABLE IF NOT EXISTS orders (id INTEGER PRIMARY KEY, code TEXT UNIQUE, product_id TEXT, product_name TEXT, qty INTEGER, total INTEGER, name TEXT, phone TEXT, note TEXT, status TEXT DEFAULT 'new', created INTEGER NOT NULL)",
   "ALTER TABLE events ADD COLUMN country TEXT", "ALTER TABLE events ADD COLUMN region TEXT", "ALTER TABLE events ADD COLUMN city TEXT",
   "ALTER TABLE events ADD COLUMN device TEXT", "ALTER TABLE events ADD COLUMN lang TEXT", "ALTER TABLE events ADD COLUMN src TEXT",
   "CREATE TABLE IF NOT EXISTS consents (id INTEGER PRIMARY KEY, ts INTEGER NOT NULL, vid TEXT, choice TEXT NOT NULL)",
@@ -78,7 +80,7 @@ function connect(): Client {
 }
 
 // Bump SCHEMA_VERSION whenever the schema or seed data changes. Cold starts then cost a single query once migrated.
-const SCHEMA_VERSION = "v10:" + SITE.whatsappNumber;
+const SCHEMA_VERSION = "v11:" + SITE.whatsappNumber;
 
 async function init(c: Client) {
   try { const v = await c.execute("SELECT value FROM settings WHERE key='schema_version'"); if (v.rows[0]?.value === SCHEMA_VERSION) return; } catch { /* first run: tables don't exist yet */ }
@@ -91,7 +93,6 @@ async function init(c: Client) {
     for (const [i, t] of ["10:00 AM", "11:30 AM", "1:00 PM", "3:00 PM", "4:30 PM", "6:00 PM", "7:30 PM", "9:00 PM"].entries()) await c.execute({ sql: "INSERT INTO slots (time, sort) VALUES (?,?)", args: [t, i] });
     await c.execute("INSERT OR IGNORE INTO coupons (code, kind, value) VALUES ('WELCOME10','percent',10)");
   }
-  if (!(await count("products"))) for (const [i, p] of SEED_PRODUCTS.entries()) await c.execute({ sql: "INSERT INTO products (id,name,kind,price,blurb,details,art,sort) VALUES (?,?,?,?,?,?,?,?)", args: [p.id, p.name, p.kind, p.price, p.blurb, p.details, p.art, i] });
   const addSvc = "INSERT OR IGNORE INTO services (id,name,price,mins,blurb,sort,kind,sessions) VALUES (?,?,?,?,?,?,?,?)";
   for (const a of [
     ["video30", "Video Session · 30 min", 999, "30 min video", "A private video call. A meeting link is shared once confirmed.", 20, "video", 0],
