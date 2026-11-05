@@ -97,41 +97,6 @@ export function Beat({ children }: { children: React.ReactNode }) {
   return <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-15%" }} transition={{ duration: 1 }} className="beat"><p>{children}</p></motion.div>;
 }
 
-const QUIZ = [
-  { q: "What is on your mind most?", a: [["Someone special", "love"], ["My work or money", "career"], ["Who I am becoming", "growth"], ["I am not sure yet", "three"]] },
-  { q: "What kind of guidance do you want?", a: [["A quick answer", "one"], ["A clear story", "three"], ["A deep look", "growth"], ["To talk it through", "call30"]] },
-  { q: "How much time do you have?", a: [["Just a few minutes", "one"], ["Some time today", "three"], ["Half an hour", "call30"], ["An unhurried hour", "call60"]] },
-] as const;
-const NAMES: Record<string, string> = { one: "One-Card Reading", three: "Three-Card Reading", love: "Love & Relationships", career: "Career & Purpose", growth: "Self-Discovery", call30: "30-Min Personal Session", call60: "60-Min Personal Session" };
-
-/** Three questions, one suggested reading. */
-export function Quiz() {
-  const [step, setStep] = useState(0); const [picks, setPicks] = useState<string[]>([]);
-  const done = step >= QUIZ.length;
-  const best = (() => { const c: Record<string, number> = {}; picks.forEach((p, i) => (c[p] = (c[p] || 0) + (i === 0 ? 1.5 : 1))); return Object.entries(c).sort((a, b) => b[1] - a[1])[0]?.[0] || "three"; })();
-  return (
-    <section id="quiz" className="px-5 py-20 sm:px-8" aria-labelledby="quiz-h">
-      <div className="glass mx-auto max-w-2xl rounded-2xl p-7 text-center sm:p-10">
-        <p className="eyebrow">Not sure where to begin?</p>
-        <h2 id="quiz-h" className="h-hero mt-3 text-[clamp(1.7rem,4vw,2.6rem)]">Which reading is <span className="gold-text italic">for me?</span></h2>
-        {!done ? (
-          <div className="mt-6">
-            <p className="text-sm text-lavender">Question {step + 1} of {QUIZ.length}</p>
-            <p className="mt-2 font-display text-2xl text-champagne">{QUIZ[step].q}</p>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">{QUIZ[step].a.map(([label, key]) => <button key={label} className="btn" onClick={() => { setPicks([...picks, key]); setStep(step + 1); }}>{label}</button>)}</div>
-          </div>
-        ) : (
-          <div className="mt-6">
-            <p className="text-sm text-lavender">We suggest</p>
-            <p className="mt-2 font-display text-3xl text-champagne">{NAMES[best]}</p>
-            <div className="mt-6 flex flex-wrap justify-center gap-3"><button className="btn btn-solid" onClick={() => startBooking(best)}>Book this reading</button><button className="btn" onClick={() => { setStep(0); setPicks([]); }}>Start again</button></div>
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
 /** For signed-in clients: a friendly nudge toward their next reading. */
 export function WelcomeBack() {
   const { user } = useUser(); const [hide, setHide] = useState(false);

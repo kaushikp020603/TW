@@ -257,7 +257,7 @@ ok("no JavaScript errors across the run", errs.length === 0, errs.join(" | ").sl
   await hit({ type: "pageview", path: "/", consent: true, lang: "en-IN", utm: "instagram" });
   await hit({ type: "booking_submit", path: "/", consent: true });
   await hit({ type: "consent", choice: "all" }); await hit({ type: "consent", choice: "essential" });
-  const a = await adm({ action: "analytics", days: 7 });
+  const a = (await adm({ action: "analytics", days: 7 })).body;
   ok("location only stored for opted-in visitors", a.cities.length === 1 && a.cities[0].city === "Mumbai" && a.cities[0].v === 1 && a.cities[0].b === 1, JSON.stringify(a.cities));
   ok("regions, devices, languages and campaigns reported", a.regions[0]?.k === "MH, IN" && a.devices.length >= 1 && a.langs[0]?.k === "en-IN" && a.campaigns[0]?.k === "instagram");
   ok("consent log counts choices", a.consent.find((x) => x.choice === "all")?.c === 1 && a.consent.find((x) => x.choice === "essential")?.c === 1);

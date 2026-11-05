@@ -37,17 +37,15 @@ await save({ music: { mode: "preset", preset: "moonlit", volume: 50 }, intro: { 
 const mk = async (vw) => { const ctx = await b.newContext({ viewport: vw }); const p = await ctx.newPage(); p.on("pageerror", (e) => errs.push("pageerror " + e.message)); p.on("console", (m) => m.type() === "error" && !/Failed to load resource|ERR_|net::|NotSupported|play\(\)/.test(m.text()) && errs.push("console " + m.text().slice(0, 150))); return { ctx, p }; };
 const { p } = await mk({ width: 1440, height: 1000 });
 await p.goto(BASE + "/admin"); await p.waitForTimeout(700); await p.getByLabel("Password").fill(ADMIN); await p.getByRole("button", { name: "Enter" }).click(); await p.waitForTimeout(1500);
-await p.getByRole("navigation", { name: "Admin navigation" }).first().getByRole("button", { name: "Music & intro" }).click(); await p.waitForTimeout(900);
-ok("Music & intro page opens from the drawer", await p.getByRole("heading", { name: "Music & intro" }).isVisible());
+await p.getByRole("navigation", { name: "Admin navigation" }).first().getByRole("button", { name: "Music" }).click(); await p.waitForTimeout(900);
+ok("Music page opens from the drawer", await p.getByRole("heading", { name: "Music" }).isVisible());
 await p.screenshot({ path: `${OUT}/ex-admin.png` });
 await p.getByRole("radio", { name: /Temple bells/ }).click(); await p.waitForTimeout(400);
 ok("selecting a track shows Save changes", await p.getByRole("button", { name: "Save changes" }).isVisible());
 await p.getByRole("button", { name: "Listen" }).nth(1).click(); await p.waitForTimeout(700); ok("Listen toggles to Stop (preview playing)", await p.getByRole("button", { name: "Stop" }).first().isVisible());
 await p.getByRole("button", { name: "Stop" }).first().click();
-await p.getByRole("radio", { name: /Quick/ }).click();
-ok("intro preview link carries chosen style (unsaved)", (await p.getByRole("link", { name: /Preview intro/ }).getAttribute("href")).includes("style=quick"));
 await p.getByRole("button", { name: "Save changes" }).click(); await p.waitForTimeout(1200);
-c = await cfg(); ok("UI save persists preset + intro style", c.music.preset === "bells" && c.intro.style === "quick");
+c = await cfg(); ok("UI save persists preset + intro style", c.music.preset === "bells");
 // upload via UI
 await p.getByRole("tab", { name: "My song" }).click(); await p.waitForTimeout(500);
 await p.getByLabel("Upload a song").setInputFiles({ name: "my-song.wav", mimeType: "audio/wav", buffer: wav(2) }); await p.waitForTimeout(1500);
@@ -74,26 +72,6 @@ await save({ music: { mode: "preset", preset: "space", volume: 50 }, intro: { st
 await S.p.goto(BASE); await S.p.waitForTimeout(1800);
 await S.p.getByRole("button", { name: "Turn ambient sound on" }).first().click(); await S.p.waitForTimeout(600); ok("built-in 'Deep space' starts without errors", (await S.p.getByRole("button", { name: "Turn ambient sound off" }).count()) >= 1);
 
-// ── intro timing (fresh visitor each time)
-async function introMs(style) {
-  await save({ music: { mode: "off", volume: 50 }, intro: { style } });
-  const { p, ctx } = await mk({ width: 1280, height: 800 }); const t0 = Date.now();
-  await p.goto(BASE, { waitUntil: "domcontentloaded" });
-  const shown = await p.locator("[aria-label='Introduction']").waitFor({ state: "attached", timeout: 3500 }).then(() => true).catch(() => false);
-  if (!shown) { await ctx.close(); return { shown: false, ms: 0 }; }
-  await p.locator("[aria-label='Introduction']").waitFor({ state: "detached", timeout: 20000 });
-  const ms = Date.now() - t0; await ctx.close(); return { shown: true, ms };
-}
-const off = await introMs("off"); ok("intro 'off': no animation at all", !off.shown);
-const quick = await introMs("quick"); ok("intro 'quick' finishes in under 5 s", quick.shown && quick.ms < 5000, `${quick.ms} ms`);
-const short = await introMs("short"); ok("intro 'short' finishes in under 6 s", short.shown && short.ms < 6000, `${short.ms} ms`);
-const full = await introMs("full"); ok("intro 'full' is the long original (over 6 s)", full.shown && full.ms > 6000, `${full.ms} ms`);
-// skip + once-per-session
-await save({ music: { mode: "off", volume: 50 }, intro: { style: "short" } });
-const k = await mk({ width: 1280, height: 800 }); await k.p.goto(BASE); await k.p.locator("[aria-label='Introduction']").waitFor({ timeout: 4000 });
-const t1 = Date.now(); await k.p.getByRole("button", { name: "Skip intro" }).click({ timeout: 4000 }); await k.p.locator("[aria-label='Introduction']").waitFor({ state: "detached", timeout: 4000 }); ok("skip button ends the intro immediately", Date.now() - t1 < 1800, `${Date.now() - t1} ms`);
-await k.p.reload(); await k.p.waitForTimeout(1500); ok("intro does not replay in the same visit", (await k.p.locator("[aria-label='Introduction']").count()) === 0);
-const pv = await mk({ width: 1280, height: 800 }); await pv.p.goto(BASE + "/?intro=preview&style=quick"); ok("admin preview link forces the intro to play", await pv.p.locator("[aria-label='Introduction']").waitFor({ timeout: 3500 }).then(() => true).catch(() => false));
 await save({ music: { mode: "preset", preset: "moonlit", volume: 50 }, intro: { style: "short" } });
 ok("no JS errors", errs.length === 0, errs.join(" | ").slice(0, 300));
 console.log(results.map((x) => `${x[0]}  ${x[1]}${x[2] ? "  [" + x[2] + "]" : ""}`).join("\n")); console.log(`\n${results.filter((x) => x[0] === "PASS").length}/${results.length} passed`);

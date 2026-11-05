@@ -11,7 +11,7 @@ import { MORE } from "./PageShell";
 const LINKS = [
   ["meet", "Guide"],
   ["shop", "Shop"],
-  ["about", "Reader"],
+  ["how", "How it works"],
   ["book", "Book"],
 ] as const;
 

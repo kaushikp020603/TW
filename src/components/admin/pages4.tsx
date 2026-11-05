@@ -4,15 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Badge, Btn, Card, Icon, Label, Segmented, ago, field, useUi } from "./ui";
 import { useAdmin } from "./ctx";
-import { INTRO_LABEL, PRESET_LIST, sanitizeConfig, type IntroStyle, type MusicMode, type SiteConfig } from "@/lib/siteConfig";
+import { PRESET_LIST, sanitizeConfig, type MusicMode, type SiteConfig } from "@/lib/siteConfig";
 import { playPreview, stopPreview } from "@/lib/ambient";
 
-const INTRO_INFO: Record<IntroStyle, string> = {
-  off: "Visitors go straight to the site.",
-  quick: "A star, the moon and the name, in about two seconds.",
-  short: "The full story in miniature: star, galaxy, moon, cards and the name. About 3 seconds. Recommended.",
-  full: "The original slow cinematic opening, about 8 seconds.",
-};
 const kb = (n: number) => (n > 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.round(n / 1024)} KB`);
 
 export function ExperiencePage() {
@@ -48,7 +42,7 @@ export function ExperiencePage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><h1 className="font-display text-3xl">Music & intro</h1><p className="mt-1 text-sm text-ivory/50">Choose the song visitors can play and how the opening animation behaves.</p></div>
+        <div><h1 className="font-display text-3xl">Music</h1><p className="mt-1 text-sm text-ivory/50">Choose the song visitors can play and how the opening animation behaves.</p></div>
         <AnimatePresence>{dirty && <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="flex gap-2">
           <Btn onClick={() => { stopPreview(); setPlaying(null); setCfg(d.config); }}>Discard</Btn>
           <Btn v="primary" icon="check" onClick={async () => { stopPreview(); setPlaying(null); await act({ action: "saveConfig", config: cfg }, "Saved. Live on the site"); }}>Save changes</Btn></motion.div>}</AnimatePresence>
@@ -107,25 +101,6 @@ export function ExperiencePage() {
             <label className="flex flex-1 items-center gap-4"><span className="w-20 text-sm text-ivory/60">Volume</span>
               <input type="range" min={0} max={100} value={cur.volume} aria-label="Volume" onChange={(e) => setMusic({ volume: Number(e.target.value) })} className="h-2 flex-1 cursor-pointer accent-fuchsia-500" /><span className="w-10 text-right text-sm text-ivory">{cur.volume}%</span></label>
           </div>)}
-      </Card>
-
-      <Card title="Intro animation" delay={0.08}>
-        <p className="mb-4 text-sm text-ivory/50">The opening that plays when someone first arrives. It only plays once per visit, and visitors can always skip it.</p>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" role="radiogroup" aria-label="Intro style">
-          {(["off", "quick", "short", "full"] as IntroStyle[]).map((s) => {
-            const on = cfg.intro.style === s;
-            return (
-              <button key={s} role="radio" aria-checked={on} onClick={() => setCfg({ ...cfg, intro: { style: s } })}
-                className={`rounded-2xl border p-4 text-left transition ${on ? "border-fuchsia-400/60 bg-gradient-to-br from-violet-600/25 to-fuchsia-600/15" : "border-white/10 bg-white/[.03] hover:border-white/25"}`}>
-                <div className="flex items-center justify-between"><p className="font-display text-xl">{INTRO_LABEL[s].split(" · ")[0]}</p>{s === "short" && <Badge tone="green">recommended</Badge>}</div>
-                <p className="text-xs uppercase tracking-[.16em] text-violet-300 [&>span]:normal-case">{INTRO_LABEL[s].includes("·") ? <span className="normal-case tracking-normal">{INTRO_LABEL[s].split(" · ")[1].replace("~", "about ")}</span> : "skips it"}</p>
-                <p className="mt-2 text-sm text-ivory/55">{INTRO_INFO[s]}</p></button>);
-          })}
-        </div>
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          <a href={`/?intro=preview&style=${cfg.intro.style === "off" ? "short" : cfg.intro.style}`} target="_blank" rel="noreferrer"><Btn icon="external">Preview intro in a new tab</Btn></a>
-          <span className="text-xs text-ivory/40">The preview uses the style selected above, even before you save.</span>
-        </div>
       </Card>
     </div>
   );

@@ -12,48 +12,6 @@ import { CardBack } from "./TarotCard";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const rise = { hidden: { opacity: 0, y: 50 }, show: { opacity: 1, y: 0, transition: { duration: 1, ease: [0.2, 0.8, 0.2, 1] as const } } };
-
-export function About() {
-  const ref = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.to(".ab-img", { yPercent: -8, ease: "none", scrollTrigger: { trigger: ref.current, start: "top bottom", end: "bottom top", scrub: true } });
-    }, ref);
-    return () => ctx.revert();
-  }, []);
-  return (
-    <section id="about" ref={ref} className="relative overflow-hidden px-5 py-28 sm:px-8" aria-labelledby="about-h">
-      <div className="mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-2">
-        <div className="frame relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden border border-gold/40">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={IMG.moonReader} alt="Illustrated portrait of your tarot reader beneath the moon" loading="lazy" className="ab-img absolute -top-[6%] h-[112%] w-full object-cover object-[50%_20%]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-midnight/70 via-transparent to-transparent" />
-        </div>
-        <motion.div variants={{ show: { transition: { staggerChildren: 0.12 } } }} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-80px" }}>
-          <motion.p variants={rise} className="eyebrow mb-4">Meet your tarot reader</motion.p>
-          <motion.h2 variants={rise} id="about-h" className="h-hero text-[clamp(2rem,5vw,3.8rem)]">Behind every card, <span className="gold-text italic">there is a story.</span></motion.h2>
-          <motion.p variants={rise} className="mt-6 font-light leading-relaxed text-ivory/85">
-            Tarot is a mirror made of symbols. In each reading, the cards give you language for what you may already feel, so you can look at your questions with more calm and clarity.
-          </motion.p>
-          <motion.p variants={rise} className="mt-4 font-light leading-relaxed text-ivory/85">
-            {/* TODO: replace with the reader's own story, qualifications and years of experience. Nothing is invented here. */}
-            Readings here are conversations, not verdicts: gentle, honest and focused on what you can reflect on and choose for yourself.
-          </motion.p>
-          <motion.ul variants={rise} className="mt-7 grid gap-3 text-sm font-light sm:grid-cols-2">
-            {["Love & relationships", "Career & purpose", "Self-discovery", "General life guidance"].map((s) => (
-              <li key={s} className="flex items-center gap-3 border-b border-gold/20 pb-3"><span className="h-1.5 w-1.5 rotate-45 bg-gold" />{s}</li>
-            ))}
-          </motion.ul>
-          <motion.blockquote variants={rise} className="mt-8 border-l border-gold pl-5 font-display text-xl italic text-champagne">
-            &ldquo;Take your time. There is no wrong question. Come as you are.&rdquo;
-          </motion.blockquote>
-          <motion.div variants={rise} className="mt-8"><button className="btn btn-solid" onClick={() => startBooking()}>Book a reading with me</button></motion.div>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
 
 const STEPS = [
   { n: "01", t: "Ask your question", d: "Think about what you want clarity on.", i: <path d="M32 54V30M32 22v-2M18 32a14 14 0 1 1 28 0c0 8-8 8-8 14" /> },
@@ -69,7 +27,7 @@ export function HowItWorks() {
     return () => ctx.revert();
   }, []);
   return (
-    <section className="px-5 py-24 sm:px-8" aria-labelledby="how-h">
+    <section id="how" className="px-5 py-24 sm:px-8" aria-labelledby="how-h">
       <div className="mx-auto max-w-6xl text-center">
         <p className="eyebrow mb-4">How it works</p>
         <h2 id="how-h" className="h-hero text-[clamp(2rem,5vw,3.8rem)]">Three steps to <span className="gold-text italic">clarity</span></h2>

@@ -144,7 +144,7 @@ ok("announcement live", (await (await sr.get(BASE + "/api/site?q=announce")).jso
 
 // reviews
 await nav("Reviews").click(); await p.waitForTimeout(700);
-await p.getByRole("button", { name: /Approve & publish/ }).click(); await p.waitForTimeout(900);
+await p.getByRole("tab", { name: /Pending/ }).click(); await p.waitForTimeout(500); await p.getByRole("button", { name: "Publish", exact: true }).first().click(); await p.waitForTimeout(900);
 ok("review approved → public", (await (await sr.get(BASE + "/api/public?q=reviews")).json()).reviews.length === 1);
 
 // chat
