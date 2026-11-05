@@ -9,7 +9,7 @@ const issues = [];
 for (const [vn, w, h, mobile] of VPS) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, isMobile: mobile, hasTouch: mobile });
   const p = await ctx.newPage();
-  await p.addInitScript(() => sessionStorage.setItem("arcana-intro", "1"));
+  await p.addInitScript(() => { sessionStorage.setItem("arcana-intro", "1"); localStorage.setItem("stc-consent", "essential"); });
   // admin login
   await p.goto(BASE + "/admin"); await p.waitForTimeout(500);
   await p.evaluate(async (pw) => fetch("/api/admin", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "login", password: pw }) }), ADMIN);

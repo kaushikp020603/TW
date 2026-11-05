@@ -10,7 +10,7 @@ const mkPage = async (vw = { width: 1440, height: 900 }, opts = {}) => {
   const ctx = await b.newContext({ viewport: vw, ...opts }); const p = await ctx.newPage();
   p.on("pageerror", (e) => errs.push("pageerror " + e.message));
   p.on("console", (m) => m.type() === "error" && !/Failed to load resource|ERR_|net::/.test(m.text()) && errs.push("console " + m.text().slice(0, 160)));
-  await p.addInitScript(() => sessionStorage.setItem("arcana-intro", "1"));
+  await p.addInitScript(() => { sessionStorage.setItem("arcana-intro", "1"); localStorage.setItem("stc-consent", "essential"); });
   return { ctx, p };
 };
 
@@ -205,7 +205,7 @@ ok("(setup) booking for tomorrow created", resv.status === 200);
 // ───────────── share as image ─────────────
 {
   const { p } = await mkPage({ width: 1280, height: 900 }, { acceptDownloads: true }); await p.goto(BASE); await p.waitForTimeout(1500);
-  await p.evaluate(() => document.getElementById("reading").scrollIntoView());
+  await p.goto(BASE + "/reading"); await p.waitForTimeout(1500);
   await p.getByRole("button", { name: "Draw today's card" }).click(); await p.waitForTimeout(1500);
   const [dl] = await Promise.all([p.waitForEvent("download", { timeout: 15000 }), p.getByRole("button", { name: "Share as image" }).first().click()]);
   const fs = await import("node:fs"); const buf = fs.readFileSync(await dl.path());
@@ -249,4 +249,18 @@ d = await adminData(); await adm({ action: "analytics", days: 30 }).then((x) => 
 }
 
 ok("no JavaScript errors across the run", errs.length === 0, errs.join(" | ").slice(0, 300));
+// ── consent-gated audience analytics ──
+{
+  const hdr = { "content-type": "application/json", "x-vercel-ip-country": "IN", "x-vercel-ip-country-region": "MH", "x-vercel-ip-city": "Mumbai" };
+  const hit = (b) => fetch(BASE + "/api/track", { method: "POST", headers: hdr, body: JSON.stringify(b) });
+  await hit({ type: "pageview", path: "/", consent: false, lang: "en-IN", utm: "instagram" });
+  await hit({ type: "pageview", path: "/", consent: true, lang: "en-IN", utm: "instagram" });
+  await hit({ type: "booking_submit", path: "/", consent: true });
+  await hit({ type: "consent", choice: "all" }); await hit({ type: "consent", choice: "essential" });
+  const a = await adm({ action: "analytics", days: 7 });
+  ok("location only stored for opted-in visitors", a.cities.length === 1 && a.cities[0].city === "Mumbai" && a.cities[0].v === 1 && a.cities[0].b === 1, JSON.stringify(a.cities));
+  ok("regions, devices, languages and campaigns reported", a.regions[0]?.k === "MH, IN" && a.devices.length >= 1 && a.langs[0]?.k === "en-IN" && a.campaigns[0]?.k === "instagram");
+  ok("consent log counts choices", a.consent.find((x) => x.choice === "all")?.c === 1 && a.consent.find((x) => x.choice === "essential")?.c === 1);
+}
+
 done(); await b.close();

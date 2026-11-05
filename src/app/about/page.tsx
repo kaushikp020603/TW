@@ -41,7 +41,7 @@ async function Inner() {
           {b?.aboutBio ? b.aboutBio.split(/\n\s*\n/).map((p, i) => <p key={i}>{p}</p>) : <p>Tarot is a mirror made of symbols. In each reading, the cards give you language for what you may already feel, so you can look at your questions with more calm and clarity. Readings here are conversations, not verdicts: gentle, honest and focused on what you can reflect on and choose for yourself.</p>}
           {b?.aboutSpecialties && <p><b className="text-champagne">Specialties:</b> {b.aboutSpecialties}</p>}
           {b?.aboutExperience && <p><b className="text-champagne">Experience:</b> {b.aboutExperience}</p>}
-          <div className="flex flex-wrap gap-3 pt-2"><Link href="/#book" className="btn btn-solid">Book a reading</Link><Link href="/#reading" className="btn">Draw a free card</Link></div>
+          <div className="flex flex-wrap gap-3 pt-2"><Link href="/#book" className="btn btn-solid">Book a reading</Link><Link href="/reading" className="btn">Draw a free card</Link></div>
         </div>
       </div>
       <section className="mt-16 max-w-3xl"><h2 className="font-display text-3xl text-champagne">How a reading works</h2>

@@ -5,6 +5,7 @@ export const DOCS: Record<string, { title: string; body: string[] }> = {
     "Spill the Cards collects only what you choose to send. Booking details (name, service, date, time, notes) are placed into a WhatsApp message that you send yourself; they are not stored on our servers.",
     "Your recent booking requests and any question you type into the reading tool are kept only in your own browser (local storage) and can be cleared by clearing your site data.",
     "If the optional AI Oracle is enabled, the messages you type there are sent to the AI provider to generate a reply. Don't share sensitive personal information in the chat.",
+    "Analytics: by default we count visits without cookies and without storing your IP address. If you press \"Accept analytics\" in the cookie banner we also record your approximate city and state (taken from your connection, never your exact location), your browser language and the campaign link you arrived from, to understand where our visitors come from. You can change your choice any time with \"Cookie settings\" in the footer.",
     `For questions or deletion requests, message us on WhatsApp at ${SITE.whatsappDisplay}.`] },
   terms: { title: "Terms & Conditions", body: [
     "Readings and bookings are arranged directly over WhatsApp. A slot is confirmed only after the reader replies to your request.",

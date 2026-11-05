@@ -2,7 +2,7 @@
 "use client";
 import { createContext, useContext } from "react";
 
-export type Route = "dashboard" | "calendar" | "bookings" | "payments" | "clients" | "services" | "availability" | "coupons" | "cards" | "blog" | "experience" | "analytics" | "marketing" | "notices" | "reviews" | "chat" | "community" | "readers" | "readings" | "reports" | "settings";
+export type Route = "dashboard" | "calendar" | "bookings" | "payments" | "clients" | "services" | "shop" | "availability" | "coupons" | "cards" | "blog" | "experience" | "analytics" | "marketing" | "notices" | "reviews" | "chat" | "community" | "readers" | "readings" | "reports" | "settings";
 export type AdminCtx = {
   d: any;
   act: (body: object, msg?: string) => Promise<any>;

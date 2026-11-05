@@ -3,17 +3,13 @@ import { useEffect, useState } from "react";
 import Intro from "@/components/Intro";
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
-import Worlds from "@/components/Worlds";
-import Universe from "@/components/Universe";
-import { MeetScene, CardsScene, RevelationScene } from "@/components/Scenes";
-import Reading from "@/components/Reading";
+import ReviewStrip from "@/components/ReviewStrip";
+import { MeetScene, CardsScene, RevelationScene, ShopScene, Beat, Quiz, WelcomeBack } from "@/components/Scenes";
 import Booking from "@/components/Booking";
 import Oracle from "@/components/Oracle";
 import Particles from "@/components/Particles";
 import { AuthModal } from "@/components/Account";
-import { Chapter, STORY } from "@/components/Story";
 import Announcements from "@/components/Announcements";
-import { syncCards } from "@/lib/cardsync";
 import { loadConfig } from "@/lib/clientConfig";
 import { configureAmbient } from "@/lib/ambient";
 import { INTRO_SPEED } from "@/lib/siteConfig";
@@ -21,9 +17,7 @@ import { About, HowItWorks, Testimonials, FinalCTA, Footer } from "@/components/
 
 export default function Home() {
   const [intro, setIntro] = useState<boolean | null>(null); // null = deciding (avoids flash)
-  const [cv, setCv] = useState(0);
   const [introSpeed, setIntroSpeed] = useState(2.5);
-  useEffect(() => { syncCards().then((c) => c && setCv((v) => v + 1)); }, []);
 
   useEffect(() => {
     let live = true;
@@ -54,19 +48,22 @@ export default function Home() {
       <Nav />
       <main>
         <Hero ready={intro === false} />
-        <Chapter {...STORY.prologue} tone="lavender" />
+        <WelcomeBack />
+        <Beat>Every story begins with a question you are not quite ready to say aloud.</Beat>
         <MeetScene />
+        <Beat>So she lays out the cards, and the cards begin to speak.</Beat>
         <CardsScene />
-        <Universe key={"u" + cv} />
-        <Chapter {...STORY.draw} />
-        <Reading key={"r" + cv} />
+        <Beat>And sometimes, one card is all it takes to see your path.</Beat>
         <RevelationScene />
-        <Worlds />
+        <Quiz />
+        <ReviewStrip place="services" />
         <About />
         <HowItWorks />
-        <Chapter {...STORY.invite} />
         <Booking />
+        <Beat>Keep a little of the magic close, long after the reading ends.</Beat>
+        <ShopScene />
         <Testimonials />
+        <Beat>Your story is still unwritten. Perhaps this is where the next chapter begins.</Beat>
         <FinalCTA />
       </main>
       <Footer />

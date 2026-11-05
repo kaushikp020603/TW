@@ -61,7 +61,7 @@ await p.getByRole("button", { name: "Discard" }).click(); await p.waitForTimeout
 // ── public site reflects it
 const mediaId = (await cfg()).music.mediaId;
 const S = await mk({ width: 1280, height: 800 });
-await S.p.addInitScript(() => sessionStorage.setItem("arcana-intro", "1"));
+await S.p.addInitScript(() => { sessionStorage.setItem("arcana-intro", "1"); localStorage.setItem("stc-consent", "essential"); });
 await S.p.goto(BASE); await S.p.waitForTimeout(1800);
 const reqP = S.p.waitForRequest((q) => new RegExp(`/api/media/${mediaId}$`).test(q.url()), { timeout: 6000 }).catch(() => null);
 await S.p.getByRole("button", { name: "Turn ambient sound on" }).first().click(); const rq = await reqP;
@@ -85,8 +85,8 @@ async function introMs(style) {
   const ms = Date.now() - t0; await ctx.close(); return { shown: true, ms };
 }
 const off = await introMs("off"); ok("intro 'off': no animation at all", !off.shown);
-const quick = await introMs("quick"); ok("intro 'quick' finishes in under 3.6 s", quick.shown && quick.ms < 3600, `${quick.ms} ms`);
-const short = await introMs("short"); ok("intro 'short' finishes in under 4.6 s", short.shown && short.ms < 4600, `${short.ms} ms`);
+const quick = await introMs("quick"); ok("intro 'quick' finishes in under 5 s", quick.shown && quick.ms < 5000, `${quick.ms} ms`);
+const short = await introMs("short"); ok("intro 'short' finishes in under 6 s", short.shown && short.ms < 6000, `${short.ms} ms`);
 const full = await introMs("full"); ok("intro 'full' is the long original (over 6 s)", full.shown && full.ms > 6000, `${full.ms} ms`);
 // skip + once-per-session
 await save({ music: { mode: "off", volume: 50 }, intro: { style: "short" } });

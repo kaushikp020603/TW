@@ -6,7 +6,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const ALL = ["core", "extended", "admin", "experience", "growth", "loyalty", "responsive"];
+const ALL = ["shop", "core", "extended", "admin", "experience", "growth", "loyalty", "responsive"];
 const wanted = process.argv.slice(2).filter((a) => ALL.includes(a));
 const suites = wanted.length ? wanted : ALL;
 const PORT = process.env.TEST_PORT || "3300";

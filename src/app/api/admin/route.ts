@@ -33,8 +33,16 @@ async function analytics(days: number) {
     count("SELECT COUNT(*) c FROM bookings WHERE status IN ('confirmed','completed') AND created>" + since),
   ]);
   const errors = await rows("SELECT id,ts,message,path,ua FROM errors ORDER BY ts DESC LIMIT 30");
+  const [cities, regions, devices, langs, campaigns, consent] = await Promise.all([
+    rows<{ city: string; region: string; country: string; v: number; b: number }>("SELECT city, MAX(region) region, MAX(country) country, COUNT(DISTINCT CASE WHEN type='pageview' THEN vid END) v, COUNT(DISTINCT CASE WHEN type='booking_submit' THEN vid END) b FROM events WHERE ts>? AND city<>'' GROUP BY city ORDER BY v DESC LIMIT 15", since),
+    rows<{ k: string; c: number }>("SELECT COALESCE(NULLIF(region,''),'?')||', '||COALESCE(NULLIF(country,''),'?') k, COUNT(DISTINCT vid) c FROM events WHERE ts>? AND type='pageview' AND country<>'' GROUP BY k ORDER BY c DESC LIMIT 10", since),
+    rows<{ k: string; c: number }>("SELECT COALESCE(NULLIF(device,''),'Unknown') k, COUNT(DISTINCT vid) c FROM events WHERE ts>? AND type='pageview' GROUP BY k ORDER BY c DESC", since),
+    rows<{ k: string; c: number }>("SELECT lang k, COUNT(DISTINCT vid) c FROM events WHERE ts>? AND type='pageview' AND lang<>'' GROUP BY lang ORDER BY c DESC LIMIT 8", since),
+    rows<{ k: string; c: number; b: number }>("SELECT src k, COUNT(DISTINCT vid) c, COUNT(DISTINCT CASE WHEN type='booking_submit' THEN vid END) b FROM events WHERE ts>? AND src<>'' GROUP BY src ORDER BY c DESC LIMIT 8", since),
+    rows<{ choice: string; c: number }>("SELECT choice, COUNT(*) c FROM consents WHERE ts>? GROUP BY choice", since),
+  ]);
   const t = (k: string) => totals.find((x) => x.type === k);
-  return { days, visitors: t("pageview")?.u ?? 0, pageviews: t("pageview")?.c ?? 0, daily, pages, sources, errors,
+  return { days, cities, regions, devices, langs, campaigns, consent, visitors: t("pageview")?.u ?? 0, pageviews: t("pageview")?.c ?? 0, daily, pages, sources, errors,
     funnel: [["Visitors", t("pageview")?.u ?? 0], ["Started a reading", t("reading_start")?.u ?? 0], ["Finished a reading", t("reading_complete")?.u ?? 0], ["Started booking", t("booking_start")?.u ?? 0], ["Sent a booking request", t("booking_submit")?.u ?? 0], ["Confirmed bookings", booked]],
     other: { wa_click: t("wa_click")?.c ?? 0, share: t("share")?.c ?? 0, signup: t("signup")?.c ?? 0, subscribe: t("subscribe")?.c ?? 0, install: t("install")?.c ?? 0 } };
 }
@@ -207,6 +215,13 @@ export async function POST(req: Request) {
       case "saveService":
         await run("INSERT INTO services (id,name,price,mins,blurb,active,sort,kind,sessions) VALUES (?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name, price=excluded.price, mins=excluded.mins, blurb=excluded.blurb, active=excluded.active",
           S("id", 30).replace(/[^a-z0-9_-]/gi, "") || "svc" + now(), S("name", 80), Math.max(0, N("price")), S("mins", 40), S("blurb", 160), b.active ? 1 : 0, N("sort"), ["reading", "video", "voice", "package"].includes(S("kind")) ? S("kind") : "reading", N("sessions")); break;
+      case "listShop": return NextResponse.json({ ok: true, products: await rows("SELECT * FROM products ORDER BY sort,name"), orders: await rows("SELECT * FROM orders ORDER BY created DESC LIMIT 200") });
+      case "saveProduct":
+        await run("INSERT INTO products (id,name,kind,price,blurb,details,art,active,sort,stock) VALUES (?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET stock=excluded.stock, name=excluded.name, kind=excluded.kind, price=excluded.price, blurb=excluded.blurb, details=excluded.details, art=excluded.art, active=excluded.active, sort=excluded.sort",
+          S("id", 40).replace(/[^a-z0-9_-]/gi, "") || "item-" + now(), S("name", 80), Math.max(0, N("price")), ["guidance", "deck", "custom", "digital", "print"].includes(S("kind")) ? S("kind") : "guidance", S("blurb", 200), S("details", 400),
+          ["moon", "sun", "star", "lotus", "heart", "eye", "crown", "key"].includes(S("art")) ? S("art") : "moon", b.active === false || b.active === 0 ? 0 : 1, N("sort"), b.stock === "" || b.stock === null || b.stock === undefined ? null : Math.max(0, N("stock"))); break;
+      case "deleteProduct": await run("DELETE FROM products WHERE id=?", S("id")); break;
+      case "setOrderStatus": await run("UPDATE orders SET status=? WHERE id=?", ["new", "paid", "shipped", "sent", "done", "cancelled"].includes(S("status")) ? S("status") : "new", N("id")); break;
       case "saveCoupon":
         await run("INSERT INTO coupons (code,kind,value,active,max_uses) VALUES (?,?,?,?,?) ON CONFLICT(code) DO UPDATE SET kind=excluded.kind, value=excluded.value, active=excluded.active, max_uses=excluded.max_uses",
           S("code", 20).trim().toUpperCase(), b.kind === "flat" ? "flat" : "percent", Math.max(0, N("value")), b.active === false ? 0 : 1, b.max_uses ? Number(b.max_uses) : null); break;
@@ -220,6 +235,12 @@ export async function POST(req: Request) {
         for (const [i, t] of clean(b.priority).entries()) await run("INSERT OR REPLACE INTO slots (time,sort,priority) VALUES (?,?,1)", t, 100 + i);
         break;
       }
+      case "saveReview": {
+        const f = [S("name", 60) || "Anonymous", S("city", 40), S("category", 40), S("text", 600), Math.min(5, Math.max(1, N("rating") || 5)), ["home", "services", "shop", "all"].includes(S("place")) ? S("place") : "all", b.featured ? 1 : 0, b.approved === false ? 0 : 1, N("sort")];
+        if (!f[3]) return NextResponse.json({ ok: false, error: "Please write the testimonial text." }, { status: 400 });
+        if (N("id")) await run("UPDATE reviews SET name=?,city=?,category=?,text=?,rating=?,place=?,featured=?,approved=?,sort=? WHERE id=?", ...f, N("id"));
+        else await run("INSERT INTO reviews (name,city,category,text,rating,place,featured,approved,sort,created) VALUES (?,?,?,?,?,?,?,?,?,?)", ...f, now());
+        break; }
       case "reviewApprove": await run("UPDATE reviews SET approved=? WHERE id=?", b.approved ? 1 : 0, N("id")); break;
       case "reviewDelete": await trashDelete("reviews", N("id"), "Review"); break;
       case "saveCard": {

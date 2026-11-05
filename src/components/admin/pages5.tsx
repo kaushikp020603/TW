@@ -12,6 +12,56 @@ const post = (b: object) => fetch("/api/admin", { method: "POST", headers: { "co
 const esc = (s: unknown) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 const isoDay = (t: number) => new Date(t - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
 
+
+// ───────── Audience (consent-only location, devices, campaigns) ─────────
+const OUTLINE: [number, number][] = [[74.5, 37], [77, 35.5], [79, 34], [78.5, 32.5], [80, 30.5], [81, 30], [84, 28.5], [88, 27.5], [88.5, 26.5], [89.5, 26.7], [92, 27], [96, 28.3], [97, 27.5], [95.5, 26], [94.5, 24], [93, 22], [92.5, 24], [91.5, 25], [89.5, 25.2], [89, 22], [87, 21.5], [85, 19.5], [82, 16.5], [80.3, 15.5], [80.2, 13], [79.8, 10.5], [78, 8.2], [77.5, 8.1], [76.5, 9.5], [75, 12.5], [73.8, 16], [72.8, 19.5], [72.7, 21], [70, 21], [69, 22.4], [70.5, 23.2], [68.5, 23.5], [71, 24.5], [70, 27], [71.5, 28], [74, 31], [74.5, 34]];
+const CITY: Record<string, [number, number]> = { mumbai: [19.08, 72.88], delhi: [28.61, 77.21], "new delhi": [28.61, 77.21], bengaluru: [12.97, 77.59], bangalore: [12.97, 77.59], hyderabad: [17.38, 78.49], chennai: [13.08, 80.27], kolkata: [22.57, 88.36], pune: [18.52, 73.86], ahmedabad: [23.02, 72.57], jaipur: [26.91, 75.79], lucknow: [26.85, 80.95], surat: [21.17, 72.83], kanpur: [26.45, 80.35], nagpur: [21.15, 79.09], indore: [22.72, 75.86], bhopal: [23.26, 77.41], patna: [25.59, 85.14], vadodara: [22.31, 73.18], ghaziabad: [28.67, 77.42], ludhiana: [30.9, 75.85], agra: [27.18, 78.01], nashik: [19.99, 73.79], faridabad: [28.41, 77.31], meerut: [28.98, 77.71], rajkot: [22.3, 70.8], varanasi: [25.32, 83.0], srinagar: [34.08, 74.8], amritsar: [31.63, 74.87], chandigarh: [30.73, 76.78], noida: [28.54, 77.39], gurgaon: [28.46, 77.03], gurugram: [28.46, 77.03], kochi: [9.93, 76.27], thiruvananthapuram: [8.52, 76.94], coimbatore: [11.02, 76.96], visakhapatnam: [17.69, 83.22], guwahati: [26.14, 91.74], bhubaneswar: [20.3, 85.82], ranchi: [23.34, 85.31], raipur: [21.25, 81.63], dehradun: [30.32, 78.03], jodhpur: [26.24, 73.02], udaipur: [24.58, 73.68], mysuru: [12.3, 76.64], panaji: [15.5, 73.83], madurai: [9.92, 78.12], thane: [19.2, 72.97], haldwani: [29.22, 79.51], dehradun_: [30.32, 78.03] };
+const proj = ([lat, lon]: [number, number]) => [((lon - 66.5) / 33) * 300, ((38.5 - lat) / 34) * 330] as const;
+
+function IndiaMap({ cities }: { cities: any[] }) {
+  const max = Math.max(1, ...cities.map((c) => c.v));
+  const dots = cities.map((c) => ({ ...c, at: CITY[String(c.city).toLowerCase()] })).filter((c) => c.at);
+  return (
+    <svg viewBox="0 0 300 330" className="mx-auto w-full max-w-sm" role="img" aria-label="Map of visitor cities in India">
+      <path d={"M" + OUTLINE.map(([lo, la]) => proj([la, lo]).map((n) => n.toFixed(1)).join(",")).join(" L") + "Z"} fill="rgba(139,92,246,.10)" stroke="rgba(214,179,109,.55)" strokeWidth="1" strokeLinejoin="round" />
+      {dots.map((c) => { const [x, y] = proj(c.at); const r = 3 + Math.sqrt(c.v / max) * 9; return (
+        <g key={c.city}><circle cx={x} cy={y} r={r * 1.9} fill="rgba(214,179,109,.16)" /><circle cx={x} cy={y} r={r} fill="#d6b36d" fillOpacity=".9"><title>{`${c.city}: ${c.v} visitors, ${c.b} booking requests`}</title></circle></g>); })}
+    </svg>
+  );
+}
+
+function AudienceTab({ a }: { a: any }) {
+  const cons = (k: string) => a.consent.find((x: any) => x.choice === k)?.c ?? 0;
+  const total = cons("all") + cons("essential");
+  const rate = total ? Math.round((cons("all") / total) * 100) : 0;
+  const cities: any[] = a.cities ?? [];
+  const best = [...cities].filter((c) => c.v >= 3).sort((x, y) => y.b / y.v - x.b / x.v)[0];
+  return (<>
+    <div className="grid gap-4 sm:grid-cols-3">
+      <Stat label="Accepted analytics" value={rate} format={(n) => n + "%"} icon="clients" sub={`${cons("all")} of ${total} answered`} />
+      <Stat label="Cities seen" value={cities.length} icon="external" tone="teal" delay={0.07} sub="only from visitors who opted in" />
+      <Stat label="Best converting city" value={best ? Math.round((best.b / best.v) * 100) : 0} format={(n) => (best ? `${best.city} ${n}%` : "–")} icon="bookings" tone="gold" delay={0.14} sub="booking requests per visitor (min. 3)" />
+    </div>
+    <div className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
+      <Card title="Where visitors are (India)">{cities.length ? <IndiaMap cities={cities} /> : <Empty icon="external" title="No location data yet" hint="Cities appear once visitors press “Accept analytics” on the live site. Locations are approximate and the IP is never stored." />}</Card>
+      <Card title="Cities and conversion" delay={0.05}>
+        {cities.length ? <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="text-xs uppercase tracking-wider text-ivory/40"><tr><th className="py-2 pr-3">City</th><th className="pr-3">Visitors</th><th className="pr-3">Booking requests</th><th>Rate</th></tr></thead>
+          <tbody>{cities.map((c) => <tr key={c.city} className="border-t border-white/5"><td className="py-2 pr-3 text-ivory/90">{c.city}<span className="ml-2 text-xs text-ivory/40">{c.region}</span></td><td className="pr-3">{c.v}</td><td className="pr-3">{c.b}</td><td>{c.v ? Math.round((c.b / c.v) * 100) : 0}%</td></tr>)}</tbody></table></div>
+          : <Empty icon="readings" title="Nothing yet" />}
+      </Card>
+    </div>
+    <div className="grid gap-4 lg:grid-cols-3">
+      <Card title="States and regions">{a.regions.length ? <HBars items={a.regions.map((x: any) => ({ label: x.k, value: x.c }))} /> : <Empty icon="external" title="No data yet" />}</Card>
+      <Card title="Devices" delay={0.05}>{a.devices.length ? <HBars items={a.devices.map((x: any) => ({ label: x.k, value: x.c }))} /> : <Empty icon="readings" title="No data yet" />}</Card>
+      <Card title="Languages" delay={0.1}>{a.langs.length ? <HBars items={a.langs.map((x: any) => ({ label: x.k, value: x.c }))} /> : <Empty icon="readings" title="No data yet" />}</Card>
+    </div>
+    <Card title="Campaign links (utm_source)">
+      {a.campaigns.length ? <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead className="text-xs uppercase tracking-wider text-ivory/40"><tr><th className="py-2 pr-3">Source</th><th className="pr-3">Visitors</th><th>Booking requests</th></tr></thead><tbody>{a.campaigns.map((c: any) => <tr key={c.k} className="border-t border-white/5"><td className="py-2 pr-3">{c.k}</td><td className="pr-3">{c.c}</td><td>{c.b}</td></tr>)}</tbody></table></div>
+        : <Empty icon="external" title="No campaign traffic yet" hint="Share links like yoursite.com/?utm_source=instagram in your bio, stories or WhatsApp broadcasts to see which channel brings bookings." />}
+    </Card>
+  </>);
+}
+
 // ───────── Analytics & health ─────────
 export function AnalyticsPage() {
   const { toast } = useUi();
@@ -30,9 +80,9 @@ export function AnalyticsPage() {
   const top = funnel[0]?.[1] || 0;
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="font-display text-3xl">Analytics & health</h1><p className="mt-1 text-sm text-ivory/50">Privacy-friendly: no cookies, no IP addresses, no personal data stored.</p></div>
-        <div className="flex flex-wrap gap-2"><Segmented label="analytics tab" value={tab} onChange={setTab} options={[{ v: "traffic", label: "Traffic & funnel" }, { v: "health", label: "Health & errors" }]} />
-          {tab === "traffic" && <Segmented label="analytics range" value={days} onChange={setDays} options={[{ v: "7", label: "7 days" }, { v: "30", label: "30 days" }, { v: "90", label: "90 days" }]} />}</div></div>
+      <div className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="font-display text-3xl">Analytics & health</h1><p className="mt-1 text-sm text-ivory/50">Privacy-friendly: no cookies and no IP addresses stored. City, language and campaign data appear only for visitors who accept analytics, no personal data stored.</p></div>
+        <div className="flex flex-wrap gap-2"><Segmented label="analytics tab" value={tab} onChange={setTab} options={[{ v: "traffic", label: "Traffic & funnel" }, { v: "audience", label: "Audience" }, { v: "health", label: "Health & errors" }]} />
+          {tab !== "health" && <Segmented label="analytics range" value={days} onChange={setDays} options={[{ v: "7", label: "7 days" }, { v: "30", label: "30 days" }, { v: "90", label: "90 days" }]} />}</div></div>
       {!a ? <Empty icon="reports" title="Loading…" /> : tab === "traffic" ? (<>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Stat label="Unique visitors" value={a.visitors} icon="clients" sub="approximate, per day" />
@@ -55,7 +105,7 @@ export function AnalyticsPage() {
           <Card title="Where visitors come from">{a.sources.length ? <HBars items={a.sources.map((p: any) => ({ label: p.r, value: p.c }))} /> : <Empty icon="external" title="No data yet" />}</Card>
         </div>
         <Card title="Other activity"><div className="grid gap-3 sm:grid-cols-5">{([["WhatsApp clicks", a.other.wa_click], ["Shares", a.other.share], ["Sign-ups", a.other.signup], ["Weekly-card sign-ups", a.other.subscribe], ["App installs", a.other.install]] as const).map(([k, v]) => <div key={k} className="rounded-xl bg-white/[.04] p-4"><p className="font-display text-3xl">{v}</p><Label>{k}</Label></div>)}</div></Card>
-      </>) : (<>
+      </>) : tab === "audience" ? (<AudienceTab a={a} />) : (<>
         <Card title="Uptime monitoring">
           <p className="mb-3 text-sm text-ivory/60">Add this address to a free uptime monitor (for example UptimeRobot) to be alerted when the site or database goes down. It returns 200 when everything is fine.</p>
           <div className="flex flex-wrap items-center gap-2"><code className="rounded-lg bg-black/40 px-3 py-2 text-sm text-champagne">{typeof location !== "undefined" ? location.origin : ""}/api/health</code>
@@ -71,6 +121,24 @@ export function AnalyticsPage() {
 }
 
 // ───────── Marketing: weekly card + subscribers ─────────
+function WinBackCard() {
+  const { d } = useAdmin(); const [nowTs] = useState(() => Date.now());
+  const list = useMemo(() => {
+    const last = new Map<string, any>();
+    for (const b of d.bookings) { if (!b.phone || !["confirmed", "completed"].includes(b.status)) continue; const k = waNumber(b.phone); const o = last.get(k); if (!o || b.date > o.date) last.set(k, b); }
+    const cutoff = isoDay(nowTs - 60 * 864e5);
+    return [...last.values()].filter((b) => b.date < cutoff).sort((a, b) => (a.date < b.date ? -1 : 1)).slice(0, 25);
+  }, [d.bookings, nowTs]);
+  return (
+    <Card title="Win-back: clients who haven't booked in 60 days">
+      {list.length ? <ul className="divide-y divide-white/5">{list.map((b: any) => (
+        <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm"><span><b className="text-ivory">{b.name}</b> <span className="text-ivory/50">· last {b.service_name} on {fdate(b.date)}</span></span>
+          <a target="_blank" rel="noreferrer" href={`https://wa.me/${waNumber(b.phone)}?text=${encodeURIComponent(`Hi ${b.name}, it has been a while ✦ I thought of you today. If anything is on your mind, I would love to read for you again. Here is 10% off your next reading with code WELCOME10.`)}`}><Btn size="sm" icon="whatsapp">Send note</Btn></a></li>))}</ul>
+        : <Empty icon="clients" title="No one to win back yet" hint="Clients appear here 60 days after their last confirmed or completed reading." />}
+    </Card>
+  );
+}
+
 export function MarketingPage() {
   const { d, act } = useAdmin(); const { toast, confirm } = useUi();
   const [nowTs] = useState(() => Date.now());
@@ -86,6 +154,7 @@ export function MarketingPage() {
   ];
   return (
     <div className="space-y-6">
+      <WinBackCard />
       <div className="flex flex-wrap items-center justify-between gap-3"><h1 className="font-display text-3xl">Marketing</h1><a href="/api/admin?export=leads"><Btn icon="download">Export subscribers</Btn></a></div>
       <div className="grid gap-4 sm:grid-cols-3"><Stat label="Subscribers" value={d.leads.length} icon="community" /><Stat label="WhatsApp" value={wa.length} icon="whatsapp" tone="teal" delay={0.07} /><Stat label="Email" value={em.length} icon="bell" tone="pink" delay={0.14} /></div>
       <Card title="This week's card">

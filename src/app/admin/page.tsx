@@ -6,20 +6,21 @@ import { Avatar, Badge, Btn, Icon, Skeleton, UiProvider, field, useUi, STATUS_TO
 import { Ctx, type Route } from "@/components/admin/ctx";
 import { BookingDrawer, BookingsPage, CalendarPage, ClientDrawer, ClientsPage, Dashboard, PaymentsPage } from "@/components/admin/pages1";
 import { AvailabilityPage, BlogPage, CardsPage, CouponsPage, NoticesPage, ReviewsPage, ServicesPage } from "@/components/admin/pages2";
+import { ShopPage } from "@/components/admin/pages6";
 import { ExperiencePage } from "@/components/admin/pages4";
 import { AnalyticsPage, MarketingPage } from "@/components/admin/pages5";
 import { ChatPage, CommunityPage, ReadersPage, ReadingsPage, ReportsPage, SettingsPage } from "@/components/admin/pages3";
 
 const NAV: { group: string; items: { r: Route; label: string; icon: string; badge?: string }[] }[] = [
   { group: "Overview", items: [{ r: "dashboard", label: "Dashboard", icon: "dashboard" }, { r: "calendar", label: "Calendar", icon: "calendar", badge: "waitlist" }] },
-  { group: "Business", items: [{ r: "bookings", label: "Bookings", icon: "bookings", badge: "bookings" }, { r: "payments", label: "Payments", icon: "payments", badge: "payments" }, { r: "clients", label: "Clients", icon: "clients", badge: "resets" }, { r: "services", label: "Services & pricing", icon: "services" }, { r: "availability", label: "Availability", icon: "clock" }, { r: "coupons", label: "Coupons", icon: "coupons" }] },
+  { group: "Business", items: [{ r: "bookings", label: "Bookings", icon: "bookings", badge: "bookings" }, { r: "payments", label: "Payments", icon: "payments", badge: "payments" }, { r: "clients", label: "Clients", icon: "clients", badge: "resets" }, { r: "services", label: "Services & pricing", icon: "services" }, { r: "shop", label: "Card shop", icon: "cards", badge: "orders" }, { r: "availability", label: "Availability", icon: "clock" }, { r: "coupons", label: "Coupons", icon: "coupons" }] },
   { group: "Content", items: [{ r: "cards", label: "Tarot cards", icon: "cards" }, { r: "blog", label: "Blog", icon: "blog" }, { r: "experience", label: "Music & intro", icon: "sound" }, { r: "notices", label: "Announcements", icon: "bell" }, { r: "reviews", label: "Reviews", icon: "star", badge: "reviews" }] },
   { group: "Engagement", items: [{ r: "chat", label: "Chat", icon: "chat", badge: "chat" }, { r: "community", label: "Community", icon: "community", badge: "community" }, { r: "readers", label: "Readers", icon: "readers", badge: "readers" }, { r: "readings", label: "Saved readings", icon: "readings" }, { r: "marketing", label: "Marketing", icon: "sparkle" }] },
   { group: "Insights", items: [{ r: "reports", label: "Reports", icon: "reports" }, { r: "analytics", label: "Analytics & health", icon: "reports", badge: "errors" }] },
   { group: "System", items: [{ r: "settings", label: "Settings", icon: "settings" }] },
 ];
 const ALL = NAV.flatMap((g) => g.items);
-const PAGES: Record<Route, React.ComponentType> = { dashboard: Dashboard, calendar: CalendarPage, bookings: BookingsPage, payments: PaymentsPage, clients: ClientsPage, services: ServicesPage, availability: AvailabilityPage, coupons: CouponsPage, cards: CardsPage, blog: BlogPage, experience: ExperiencePage, analytics: AnalyticsPage, marketing: MarketingPage, notices: NoticesPage, reviews: ReviewsPage, chat: ChatPage, community: CommunityPage, readers: ReadersPage, readings: ReadingsPage, reports: ReportsPage, settings: SettingsPage };
+const PAGES: Record<Route, React.ComponentType> = { dashboard: Dashboard, calendar: CalendarPage, bookings: BookingsPage, payments: PaymentsPage, clients: ClientsPage, services: ServicesPage, shop: ShopPage, availability: AvailabilityPage, coupons: CouponsPage, cards: CardsPage, blog: BlogPage, experience: ExperiencePage, analytics: AnalyticsPage, marketing: MarketingPage, notices: NoticesPage, reviews: ReviewsPage, chat: ChatPage, community: CommunityPage, readers: ReadersPage, readings: ReadingsPage, reports: ReportsPage, settings: SettingsPage };
 
 const post = (b: object) => fetch("/api/admin", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(b) });
 const fromHash = (): Route => { const h = (typeof location !== "undefined" ? location.hash.replace(/^#\/?/, "") : "") as Route; return ALL.some((i) => i.r === h) ? h : "dashboard"; };

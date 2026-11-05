@@ -9,9 +9,8 @@ import Link from "next/link";
 import { MORE } from "./PageShell";
 
 const LINKS = [
-  ["worlds", "Worlds"],
-  ["universe", "The Cards"],
-  ["reading", "Pick a Card"],
+  ["meet", "Guide"],
+  ["shop", "Shop"],
   ["about", "Reader"],
   ["book", "Book"],
 ] as const;

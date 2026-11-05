@@ -153,6 +153,8 @@ export function BookingDrawer({ id, onClose }: { id: number | null; onClose: () 
     ["Reminder", `Hi ${b.name}, a gentle reminder of your ${b.service_name} ${b.date === d.today ? "today" : "on " + fshort(b.date)} at ${b.time}.${link}`],
     ["Reschedule", `Hi ${b.name}, could we move your ${b.service_name} (${fshort(b.date)} ${b.time}) to another time? Please share what suits you.`],
     ["Payment", `Hi ${b.name}, the amount for your ${b.service_name} is ${inr(b.price - b.discount)}. You can pay by UPI and share the screenshot here. Thank you!`],
+    ["Follow-up", `Hi ${b.name}, how are you feeling after your ${b.service_name}? If any question came up since, reply here and I'll gladly help ✦`],
+    ["Review request", `Hi ${b.name}, if our session helped, a short review on the website would mean a lot 🌙 It takes a minute and helps others find clarity too. Thank you!`],
     ["Thank you", `Thank you ${b.name} 🌙 It was lovely reading for you. If you'd like, share a short review on the website.`],
   ] : [];
   return (

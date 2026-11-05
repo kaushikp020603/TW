@@ -9,16 +9,12 @@ const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } });
 const p = await ctx.newPage();
 p.on("pageerror", (e) => errs.push("pageerror " + e.message));
 p.on("console", (m) => m.type() === "error" && !/Failed to load resource/.test(m.text()) && errs.push("console " + m.text()));
-await p.addInitScript(() => sessionStorage.setItem("arcana-intro", "1"));
+await p.addInitScript(() => { sessionStorage.setItem("arcana-intro", "1"); localStorage.setItem("stc-consent", "essential"); });
 await p.goto(BASE, { waitUntil: "load" }); await p.waitForTimeout(1500);
 const api = (path, opt) => p.evaluate(async ([path, opt]) => { const r = await fetch(path, opt); return { status: r.status, body: await r.json().catch(() => null) }; }, [path, opt]);
 const post = (path, body, method = "POST") => api(path, { method, headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 
-// Story chapters
-ok("story chapters render", (await p.locator("section[aria-label^='Chapter']").count()) === 6);
-await p.evaluate(() => document.querySelector("section[aria-label^='Chapter']").scrollIntoView()); await p.waitForTimeout(800);
-await p.screenshot({ path: `${OUT}/e-story.png` });
-
+await p.goto(BASE + "/reading"); await p.waitForTimeout(1500);
 // Daily card
 await p.evaluate(() => document.getElementById("reading").scrollIntoView());
 await p.getByRole("button", { name: /Draw today/ }).click(); await p.waitForTimeout(1500);
@@ -66,6 +62,8 @@ const [pop] = await Promise.all([p.waitForEvent("popup"), p.getByRole("button", 
 await pop.waitForTimeout(500); ok("PDF page opens with reading", /Spill the Cards/.test(await pop.content())); await pop.close();
 const share = await p.getByRole("link", { name: "Share on WhatsApp" }).last().getAttribute("href");
 ok("share link is wa.me text", share.startsWith("https://wa.me/?text="));
+
+await p.goto(BASE); await p.waitForTimeout(1500);
 
 // Auth
 const email = `t${Date.now()}@example.com`;

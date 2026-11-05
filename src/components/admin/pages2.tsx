@@ -177,17 +177,37 @@ export function NoticesPage() {
 
 // ───────── Reviews ─────────
 export function ReviewsPage() {
-  const { d, act } = useAdmin(); const [tab, setTab] = useState("pending");
+  const { d, act } = useAdmin(); const [tab, setTab] = useState("live"); const [edit, setEdit] = useState<any | null>(null);
   const list = useMemo(() => d.reviews.filter((r: any) => (tab === "pending" ? !r.approved : r.approved)), [d.reviews, tab]);
+  const blank = { id: 0, name: "", city: "", category: "General guidance", text: "", rating: 5, place: "all", featured: false, approved: true };
+  const TOPICS = ["Love & relationships", "Career & finance", "Self discovery", "General guidance", "Video session", "Card shop"];
+  const PLACES: [string, string][] = [["all", "Everywhere"], ["home", "Home page only"], ["services", "Next to the readings"], ["shop", "Card shop only"]];
   return (
-    <div className="space-y-6"><div className="flex flex-wrap items-center justify-between gap-3"><h1 className="font-display text-3xl">Reviews</h1>
-      <Segmented label="reviews" value={tab} onChange={setTab} options={[{ v: "pending", label: `Pending ${d.reviews.filter((r: any) => !r.approved).length}` }, { v: "live", label: `Published ${d.reviews.filter((r: any) => r.approved).length}` }]} /></div>
+    <div className="space-y-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="font-display text-3xl">Testimonials</h1><p className="mt-1 text-sm text-ivory/50">Add your own, edit the text, choose where each one appears, or approve what visitors submit.</p></div>
+      <div className="flex flex-wrap gap-2"><Segmented label="reviews" value={tab} onChange={setTab} options={[{ v: "live", label: `Published ${d.reviews.filter((r: any) => r.approved).length}` }, { v: "pending", label: `Pending ${d.reviews.filter((r: any) => !r.approved).length}` }]} />
+        <Btn v="primary" icon="plus" onClick={() => setEdit(blank)}>Add testimonial</Btn></div></div>
       <div className="grid gap-4 md:grid-cols-2"><AnimatePresence mode="popLayout">{list.map((r: any) => (
         <motion.figure key={r.id} layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="rounded-2xl border border-white/[.07] bg-[#120c20] p-5">
-          <span className="font-display text-4xl leading-none text-gold/60">&ldquo;</span><blockquote className="font-light italic text-ivory/90">{r.text}</blockquote>
-          <figcaption className="mt-3 text-xs text-ivory/50">{r.name} · {r.category || "General"} · {ago(r.created)}</figcaption>
-          <div className="mt-4 flex gap-2">{r.approved ? <Btn size="sm" onClick={() => act({ action: "reviewApprove", id: r.id, approved: false }, "Unpublished")}>Unpublish</Btn> : <Btn size="sm" v="primary" icon="check" onClick={() => act({ action: "reviewApprove", id: r.id, approved: true }, "Published on the site")}>Approve & publish</Btn>}<Btn size="sm" v="danger" icon="trash" onClick={() => act({ action: "reviewDelete", id: r.id }, "Deleted")} /></div></motion.figure>))}</AnimatePresence></div>
-      {!list.length && <Empty icon="star" title={tab === "pending" ? "All caught up" : "Nothing published yet"} hint="Visitors can submit reviews from the Testimonials section." />}
+          <div className="flex items-start justify-between"><span className="font-display text-4xl leading-none text-gold/60">&ldquo;</span><span className="text-sm text-amber-300" aria-label={`${r.rating || 5} stars`}>{"★".repeat(r.rating || 5)}</span></div>
+          <blockquote className="font-light italic text-ivory/90">{r.text}</blockquote>
+          <figcaption className="mt-3 text-xs text-ivory/50">{r.name}{r.city ? `, ${r.city}` : ""} · {r.category || "General"} · {ago(r.created)}</figcaption>
+          <div className="mt-2 flex flex-wrap gap-2">{r.featured ? <Badge tone="amber">Featured</Badge> : null}<Badge tone="violet">{(PLACES.find((p) => p[0] === (r.place || "all")) || PLACES[0])[1]}</Badge></div>
+          <div className="mt-4 flex flex-wrap gap-2"><Btn size="sm" icon="edit" onClick={() => setEdit({ ...r, featured: !!r.featured, approved: !!r.approved, city: r.city || "", place: r.place || "all", rating: r.rating || 5 })}>Edit</Btn>
+            {r.approved ? <Btn size="sm" onClick={() => act({ action: "reviewApprove", id: r.id, approved: false }, "Unpublished")}>Unpublish</Btn> : <Btn size="sm" v="primary" icon="check" onClick={() => act({ action: "reviewApprove", id: r.id, approved: true }, "Published")}>Publish</Btn>}
+            <Btn size="sm" v="danger" icon="trash" onClick={() => act({ action: "reviewDelete", id: r.id }, "Moved to Recently deleted")}>Delete</Btn></div></motion.figure>))}</AnimatePresence></div>
+      {!list.length && <Empty icon="star" title={tab === "pending" ? "All caught up" : "Nothing published yet"} hint="Press Add testimonial to write one, or wait for visitors to submit reviews." />}
+      <Modal open={!!edit} onClose={() => setEdit(null)} title={edit?.id ? "Edit testimonial" : "Add testimonial"}>
+        {edit && <form className="space-y-4" onSubmit={async (e) => { e.preventDefault(); await act({ action: "saveReview", ...edit }, "Testimonial saved"); setEdit(null); }}>
+          <label className="block"><Label>What they said</Label><textarea className={field} rows={4} required maxLength={600} value={edit.text} onChange={(e) => setEdit({ ...edit, text: e.target.value })} /></label>
+          <div className="grid grid-cols-2 gap-3"><label className="block"><Label>Name or initials</Label><input className={field} maxLength={60} placeholder="Priya S." value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} /></label>
+            <label className="block"><Label>City (optional)</Label><input className={field} maxLength={40} value={edit.city} onChange={(e) => setEdit({ ...edit, city: e.target.value })} /></label></div>
+          <div className="grid grid-cols-2 gap-3"><label className="block"><Label>Topic</Label><select className={field} value={edit.category} onChange={(e) => setEdit({ ...edit, category: e.target.value })}>{TOPICS.map((k) => <option key={k}>{k}</option>)}</select></label>
+            <label className="block"><Label>Stars</Label><select className={field} value={edit.rating} onChange={(e) => setEdit({ ...edit, rating: Number(e.target.value) })}>{[5, 4, 3].map((n) => <option key={n} value={n}>{n}</option>)}</select></label></div>
+          <label className="block"><Label>Show it</Label><select className={field} value={edit.place} onChange={(e) => setEdit({ ...edit, place: e.target.value })}>{PLACES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
+          <div className="flex flex-wrap items-center gap-6 text-sm"><label className="flex items-center gap-2"><input type="checkbox" checked={edit.featured} onChange={(e) => setEdit({ ...edit, featured: e.target.checked })} />Feature first</label>
+            <label className="flex items-center gap-2"><input type="checkbox" checked={edit.approved} onChange={(e) => setEdit({ ...edit, approved: e.target.checked })} />Published</label></div>
+          <p className="text-xs text-ivory/45">Only add testimonials from real clients who agreed to be quoted.</p>
+          <Btn v="primary" className="w-full">Save testimonial</Btn></form>}</Modal>
     </div>
   );
 }

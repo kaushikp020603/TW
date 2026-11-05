@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { IMG, SITE, waLink } from "@/config/site";
-import { startBooking, startReading } from "@/lib/events";
+import { startBooking } from "@/lib/events";
 import { track } from "@/lib/track";
 import InstallButton from "./InstallButton";
 import { CardBack } from "./TarotCard";
@@ -97,13 +97,13 @@ const PLACEHOLDERS = [
   { name: "Placeholder · Anonymous", category: "Career reading", text: "Sample review text. Replace with a genuine client review shared with permission." },
   { name: "Placeholder · Anonymous", category: "General guidance", text: "Sample review text. Replace with a genuine client review shared with permission." },
 ];
-type Review = { name: string; category: string; text: string };
+type Review = { name: string; category: string; text: string; city?: string; rating?: number };
 export function Testimonials() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [f, setF] = useState({ name: "", category: "General guidance", text: "", permission: false });
   const [msg, setMsg] = useState("");
   useEffect(() => { fetch("/api/public?q=reviews").then((r) => r.json()).then((j) => setReviews(j.reviews || [])).catch(() => {}); }, []);
-  const list = reviews.length ? reviews : PLACEHOLDERS;
+  const list: Review[] = reviews.length ? reviews : PLACEHOLDERS;
   async function send(e: React.FormEvent) {
     e.preventDefault();
     const r = await fetch("/api/reviews", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(f) });
@@ -122,7 +122,8 @@ export function Testimonials() {
             <motion.figure key={i} initial={{ opacity: 0, y: 40, rotate: -1.5 }} whileInView={{ opacity: 1, y: 0, rotate: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15, duration: 0.9 }} whileHover={{ y: -8 }} className="glass frame p-8">
               <span className="font-display text-5xl leading-none text-gold/60">&ldquo;</span>
               <blockquote className="mt-2 font-light italic leading-relaxed text-ivory/85">{r.text}</blockquote>
-              <figcaption className="mt-6 text-xs uppercase tracking-[.2em]"><span className="text-champagne">{r.name}</span><span className="mt-1 block text-lavender">{r.category}</span></figcaption>
+              {r.rating ? <p className="mt-4 text-sm tracking-widest text-gold" aria-label={`${r.rating} out of 5 stars`}>{"★".repeat(r.rating)}</p> : null}
+              <figcaption className="mt-3 text-xs uppercase tracking-[.2em]"><span className="text-champagne">{r.name}{r.city ? `, ${r.city}` : ""}</span><span className="mt-1 block text-lavender">{r.category}</span></figcaption>
             </motion.figure>
           ))}
         </div>
@@ -164,7 +165,7 @@ export function FinalCTA() {
         <h2 id="fc-h" className="h-hero text-[clamp(2rem,6vw,4.6rem)]">Perhaps this is the moment <span className="gold-text italic">you&apos;ve been waiting for.</span></h2>
         <p className="mx-auto mt-6 max-w-lg font-light text-ivory/85">Your next chapter is waiting to unfold. Take a moment, trust your intuition and begin your journey.</p>
         <div className="mt-10 flex flex-wrap justify-center gap-4">
-          <button className="btn btn-solid" onClick={() => startReading()}>Begin your tarot journey</button>
+          <button className="btn btn-solid" onClick={() => startBooking()}>Book your reading</button>
           <a className="btn" href={waLink("Hi! I'd like to book a tarot reading on Spill the Cards.")} target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>
         </div>
       </div>
@@ -208,14 +209,14 @@ export function Footer() {
           <img src="/brand/mark.webp" alt="Spill the Cards" width={160} height={160} className="h-32 w-32 rounded-full border border-gold/40 object-cover shadow-[0_0_40px_rgba(214,179,109,.25)]" />
           <p className="mt-3 text-sm font-light text-ivory/60">{SITE.tagline}</p>
         </div>
-        <div><p className="eyebrow mb-3">Explore</p><L h="/about" t="About the reader" /><L h="#worlds" t="Readings" /><L h="#book" t="Book a session" /><L h="#reading" t="Pick a card" /><L h="/cards" t="Card meanings" /><L h="/gift" t="Gift a reading" /></div>
+        <div><p className="eyebrow mb-3">Explore</p><L h="/shop" t="Card shop" /><L h="/about" t="About the reader" /><L h="#book" t="Book a session" /><L h="#reading" t="Pick a card" /><L h="/cards" t="Card meanings" /><L h="/gift" t="Gift a reading" /></div>
         <div><p className="eyebrow mb-3">Contact</p>
           <L h={waLink("Hi! I have a question about a tarot reading.")} t={`WhatsApp ${SITE.whatsappDisplay}`} ext />
           {biz.channel && <L h={biz.channel} t="WhatsApp Channel" ext />}
           {biz.instagram && <L h={biz.instagram} t="Instagram" ext />}
         </div>
         <div><p className="eyebrow mb-3">More</p><L h="/insights" t="Your Stars & Compatibility" /><L h="/journey" t="My Journey" /><L h="/community" t="Community" /><L h="/blog" t="Blog" /><L h="/readers" t="Readers" /><L h="/chat" t="Ask the Reader" /></div>
-        <div><p className="eyebrow mb-3">Legal & settings</p><L h="/privacy" t="Privacy policy" /><L h="/terms" t="Terms & conditions" /><L h="/disclaimer" t="Tarot disclaimer" />
+        <div><p className="eyebrow mb-3">Legal & settings</p><button className="block py-1 text-left text-sm font-light text-ivory/70 hover:text-gold" onClick={() => window.dispatchEvent(new Event("stc:reconsent"))}>Cookie settings</button><L h="/privacy" t="Privacy policy" /><L h="/terms" t="Terms & conditions" /><L h="/disclaimer" t="Tarot disclaimer" />
           <button onClick={toggleText} aria-pressed={large} className="block py-2 text-left font-light text-ivory/70 transition hover:text-gold">{large ? "Normal text size" : "Larger text"}</button>
           <InstallButton className="block py-2 text-left font-light text-gold transition hover:text-champagne" /></div>
       </div>

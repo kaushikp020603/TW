@@ -10,7 +10,7 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: "/icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
     shortcuts: [
-      { name: "Draw today's card", short_name: "Daily card", url: "/#reading" },
+      { name: "Draw today's card", short_name: "Daily card", url: "/reading" },
       { name: "Book a reading", short_name: "Book", url: "/#book" },
       { name: "Card meanings", short_name: "Cards", url: "/cards" },
     ],

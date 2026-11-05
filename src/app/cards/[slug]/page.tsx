@@ -42,7 +42,7 @@ async function Inner({ params }: Params) {
       <div className="grid gap-10 lg:grid-cols-[260px_1fr]">
         <aside className="mx-auto w-[220px] lg:sticky lg:top-6 lg:h-fit lg:w-full">
           <div className="aspect-[5/8] overflow-hidden rounded-[14px] border border-gold/60 shadow-[0_0_50px_rgba(214,179,109,.3)]"><CardFace card={c} /></div>
-          <div className="mt-5 space-y-3"><Link href="/#reading" className="btn btn-solid w-full">Pull your own cards</Link><Link href="/#book" className="btn w-full">Book a personal reading</Link></div>
+          <div className="mt-5 space-y-3"><Link href="/reading" className="btn btn-solid w-full">Pull your own cards</Link><Link href="/#book" className="btn w-full">Book a personal reading</Link></div>
         </aside>
         <article className="max-w-2xl space-y-9">
           {p.sections.map((s) => (

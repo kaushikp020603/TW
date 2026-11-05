@@ -1,4 +1,5 @@
 "use client";
+import { getConsent } from "./consent";
 // Cookie-free analytics events. Respects Do Not Track. Never sends personal data.
 export type EventType = "pageview" | "reading_start" | "reading_complete" | "booking_start" | "booking_submit" | "wa_click" | "share" | "signup" | "intro_skip" | "install" | "subscribe";
 
@@ -11,10 +12,19 @@ function send(body: object) {
 }
 const dnt = () => typeof navigator !== "undefined" && (navigator.doNotTrack === "1" || (window as unknown as { doNotTrack?: string }).doNotTrack === "1");
 
+function campaign(): string | undefined {
+  try {
+    const u = new URLSearchParams(location.search).get("utm_source");
+    if (u) sessionStorage.setItem("stc-src", u.slice(0, 40));
+    return sessionStorage.getItem("stc-src") || undefined;
+  } catch { return undefined; }
+}
 export function track(type: EventType, ref?: string) {
   if (typeof window === "undefined" || dnt() || location.pathname.startsWith("/admin")) return;
-  send({ type, path: location.pathname, ref });
+  const all = getConsent() === "all";                // location, language and campaign only with explicit opt-in
+  send({ type, path: location.pathname, ref, consent: all, lang: all ? navigator.language : undefined, utm: all ? campaign() : undefined });
 }
+export function logConsent(choice: "all" | "essential") { send({ type: "consent", choice }); }
 export function reportError(msg: string) {
   if (typeof window === "undefined" || location.pathname.startsWith("/admin")) return;
   send({ type: "error", path: location.pathname, msg });

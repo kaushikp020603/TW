@@ -89,7 +89,7 @@ export function AccountButton() {
         <div className="glass absolute right-0 top-12 w-56 space-y-1 p-3 text-sm">
           <p className="truncate px-2 pb-2 text-xs text-ivory/50">{user.email}</p>
           <button className="block w-full px-2 py-2 text-left hover:text-gold" onClick={() => { setMenu(false); goTo("book"); }}>My bookings</button>
-          <button className="block w-full px-2 py-2 text-left hover:text-gold" onClick={() => { setMenu(false); goTo("reading"); }}>My readings</button>
+          <button className="block w-full px-2 py-2 text-left hover:text-gold" onClick={() => { setMenu(false); location.assign("/reading"); }}>My readings</button>
           <button className="block w-full px-2 py-2 text-left hover:text-gold" onClick={out}>Sign out</button>
           <button className="block w-full px-2 py-2 text-left text-red-300 hover:text-red-200" onClick={del}>Delete account</button>
         </div>

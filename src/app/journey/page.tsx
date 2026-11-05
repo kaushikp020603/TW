@@ -14,7 +14,7 @@ function icsFor(time: string) {
   const [h, m] = time.split(":"); const d = new Date(); const pad = (n: number | string) => String(n).padStart(2, "0");
   const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(h)}${pad(m)}00`;
   const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Spill the Cards//Daily Card//EN", "BEGIN:VEVENT", `UID:arcana-daily-${Date.now()}@arcana`, `DTSTAMP:${stamp}`, `DTSTART:${stamp}`, "DURATION:PT10M", "RRULE:FREQ=DAILY",
-    "SUMMARY:Draw your card of the day ✦ Spill the Cards", `DESCRIPTION:Take a breath and draw your free daily card: ${location.origin}/#reading`, `URL:${location.origin}/#reading`, "BEGIN:VALARM", "TRIGGER:PT0M", "ACTION:DISPLAY", "DESCRIPTION:Your card of the day is waiting", "END:VALARM", "END:VEVENT", "END:VCALENDAR"];
+    "SUMMARY:Draw your card of the day ✦ Spill the Cards", `DESCRIPTION:Take a breath and draw your free daily card: ${location.origin}/reading`, `URL:${location.origin}/reading`, "BEGIN:VALARM", "TRIGGER:PT0M", "ACTION:DISPLAY", "DESCRIPTION:Your card of the day is waiting", "END:VALARM", "END:VEVENT", "END:VCALENDAR"];
   return lines.join("\r\n");
 }
 

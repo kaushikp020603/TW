@@ -9,7 +9,7 @@ const mk = async (vw = { width: 1440, height: 900 }) => {
   const ctx = await b.newContext({ viewport: vw }); const p = await ctx.newPage();
   p.on("pageerror", (e) => errs.push("pageerror " + e.message));
   p.on("console", (m) => m.type() === "error" && !/Failed to load resource/.test(m.text()) && errs.push("console " + m.text().slice(0, 200)));
-  await p.addInitScript(() => sessionStorage.setItem("arcana-intro", "1"));
+  await p.addInitScript(() => { sessionStorage.setItem("arcana-intro", "1"); localStorage.setItem("stc-consent", "essential"); });
   await p.goto(BASE, { waitUntil: "load" }); await p.waitForTimeout(800); return { ctx, p };
 };
 const call = (p) => async (path, body, method = "POST") => p.evaluate(async ([path, body, method]) => {
@@ -44,8 +44,7 @@ ok("compatibility shows score + 3 cards", /\d+%/.test(ct) && /the bond/i.test(ct
 await U.p.screenshot({ path: `${OUT}/n-compat.png` });
 
 // ── mood-based reading (UI)
-await U.p.goto(BASE); await U.p.waitForTimeout(1200);
-await U.p.evaluate(() => document.getElementById("reading").scrollIntoView());
+await U.p.goto(BASE + "/reading"); await U.p.waitForTimeout(1500);
 await U.p.getByRole("button", { name: /Restless/ }).click();
 ok("mood sets spread + question", (await U.p.locator("#q").inputValue()).includes("right time") && (await U.p.locator("#reading").getByRole("button", { name: /^Yes \/ No/ }).getAttribute("aria-pressed")) === "true");
 
@@ -138,9 +137,8 @@ await adm({ action: "addAnnouncement", text: "Full-moon special: 20% off this we
 await G.p.addInitScript(() => sessionStorage.removeItem("arcana-notice-x"));
 await G.p.goto(BASE); await G.p.waitForTimeout(1500); ok("announcement banner shows on site", await G.p.getByText("Full-moon special").isVisible());
 await adm({ action: "saveCard", id: 18, keywords: "dreams · illusion · intuition", upright: "CUSTOM-MOON-MEANING for tests.", reversed: "Clarity returns.", love: "x", career: "y" });
-await G.p.reload(); await G.p.waitForTimeout(1800); await G.p.evaluate(() => document.getElementById("universe").scrollIntoView()); await G.p.waitForTimeout(800);
-await G.p.getByRole("button", { name: "Open The Moon" }).click({ force: true }); await G.p.waitForTimeout(700);
-ok("admin-edited card meaning appears on site", await G.p.getByText("CUSTOM-MOON-MEANING").isVisible());
+await G.p.goto(BASE + "/cards/the-moon"); await G.p.waitForTimeout(1500);
+ok("admin-edited card meaning appears on site", await G.p.getByText("CUSTOM-MOON-MEANING").first().isVisible());
 await adm({ action: "resetCard", id: 18 });
 
 // ── reading management

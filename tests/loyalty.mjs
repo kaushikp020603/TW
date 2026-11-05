@@ -12,7 +12,7 @@ const mkPage = async (vw = { width: 1440, height: 900 }) => {
   const ctx = await b.newContext({ viewport: vw }); const p = await ctx.newPage();
   p.on("pageerror", (e) => errs.push("pageerror " + e.message));
   p.on("console", (m) => m.type() === "error" && !/Failed to load resource|ERR_|net::/.test(m.text()) && errs.push("console " + m.text().slice(0, 160)));
-  await p.addInitScript(() => sessionStorage.setItem("arcana-intro", "1"));
+  await p.addInitScript(() => { sessionStorage.setItem("arcana-intro", "1"); localStorage.setItem("stc-consent", "essential"); });
   return { ctx, p };
 };
 const A = await mkReq(), anon = await mkReq();

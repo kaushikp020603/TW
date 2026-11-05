@@ -4,6 +4,9 @@ import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
 import Telemetry from "@/components/Telemetry";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import ConsentBanner from "@/components/ConsentBanner";
+import ExitOffer from "@/components/ExitOffer";
+import TiltInit from "@/components/TiltInit";
 import { SERVICES, SITE, SITE_URL } from "@/config/site";
 
 const display = Cormorant_Garamond({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-display" });
@@ -46,7 +49,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <svg width="0" height="0" className="absolute" aria-hidden="true" focusable="false"><filter id="stc-sharp"><feConvolveMatrix order="3" preserveAlpha="true" kernelMatrix="0 -0.45 0 -0.45 2.8 -0.45 0 -0.45 0" /></filter></svg>
         {children}
-        <Suspense fallback={null}><Telemetry /><FloatingWhatsApp /></Suspense>
+        <Suspense fallback={null}><Telemetry /><FloatingWhatsApp />
+          <ConsentBanner /><ExitOffer /><TiltInit /></Suspense>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </body>
     </html>

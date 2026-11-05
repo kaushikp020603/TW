@@ -1,7 +1,7 @@
 import "server-only";
 import { rows, run, now } from "./db";
 
-const TABLES = ["services", "bookings", "payments", "coupons", "blocked", "slots", "reviews", "readings", "card_overrides", "posts", "announcements", "threads", "replies", "readers", "notes", "activity", "journal", "leads"];
+const TABLES = ["products", "orders", "services", "bookings", "payments", "coupons", "blocked", "slots", "reviews", "readings", "card_overrides", "posts", "announcements", "threads", "replies", "readers", "notes", "activity", "journal", "leads"];
 
 /** Builds a JSON snapshot of the business data (never password hashes, sessions, tokens or audio blobs). */
 export async function snapshot() {
